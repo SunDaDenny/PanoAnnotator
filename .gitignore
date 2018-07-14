@@ -1,0 +1,8 @@
+
+*.pyc
+
+estimator/depth/models/trained/NYU_ResNet-UpProj_pano_512_20_epoch\.ckpt\.data-00000-of-00001
+
+estimator/depth/models/trained/NYU_ResNet-UpProj_pano_512_20_epoch\.ckpt\.index
+
+estimator/depth/models/trained/NYU_ResNet-UpProj_pano_512_20_epoch\.ckpt\.meta
