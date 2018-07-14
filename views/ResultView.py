@@ -31,7 +31,7 @@ class ResultView(QOpenGLWidget):
         self.isLayoutWallEnable = True
         self.isLayoutPointEnable = True
 
-        self.geoTool = utils.GeometryTool()
+        #self.geoTool = utils.GeometryTool()
 
     #####
     #Comstum Method
@@ -39,8 +39,7 @@ class ResultView(QOpenGLWidget):
     def initByScene(self, scene):
         self.__mainScene = scene
 
-        panoTool = utils.PanoTool()
-        pointCloud = panoTool.createPointCloud(self.__mainScene.getPanoColorData(),
+        pointCloud = utils.createPointCloud(self.__mainScene.getPanoColorData(),
                                                 self.__mainScene.getPanoDepthData() )
         self.__mainScene.setPanoPointCloud(pointCloud)
 

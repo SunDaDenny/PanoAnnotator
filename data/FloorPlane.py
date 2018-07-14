@@ -20,9 +20,6 @@ class FloorPlane(object):
         self.mesh = []
         self.meshProj = []
 
-        self.gtool = utils.GeometryTool()
-        self.ptool = utils.PanoTool()
-
         self.init()
 
     def init(self):
@@ -39,5 +36,5 @@ class FloorPlane(object):
         for gp in gps:
             self.mesh.append((gp.xyz[0], -cameraH, gp.xyz[2]))
 
-        self.meshProj = self.ptool.mesh2pano(self.mesh)
+        self.meshProj = utils.mesh2pano(self.mesh)
 

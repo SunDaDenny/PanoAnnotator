@@ -30,9 +30,6 @@ class WallPlane(object):
 
         self.order = 0
 
-        self.gtool = utils.GeometryTool()
-        self.ptool = utils.PanoTool()
-
         self.init()
 
     def __hash__(self):
@@ -77,8 +74,8 @@ class WallPlane(object):
                     (gps[1].xyz[0], -cameraH, gps[1].xyz[2]),
                     (gps[0].xyz[0], -cameraH, gps[0].xyz[2])]
 
-        vec1 = list(self.gtool.calcPointsDirection(self.mesh[0], self.mesh[1]))
-        vec2 = list(self.gtool.calcPointsDirection(self.mesh[0], self.mesh[3]))
+        vec1 = list(utils.calcPointsDirection(self.mesh[0], self.mesh[1]))
+        vec2 = list(utils.calcPointsDirection(self.mesh[0], self.mesh[3]))
         
         self.normal = tuple(np.cross(vec1,vec2))
         
@@ -87,7 +84,7 @@ class WallPlane(object):
             pd -= self.normal[i] * self.mesh[0][i]
         self.planeEquation = self.normal + (pd,)
 
-        self.meshProj = self.ptool.mesh2pano(self.mesh)
+        self.meshProj = utils.mesh2pano(self.mesh)
 
     def checkRayHit(self, vec, orig=(0,0,0)):
 
@@ -104,9 +101,9 @@ class WallPlane(object):
         if self.mesh[2][1] <= point[1] <= self.mesh[0][1]:
 
             p1 = (point[0], self.mesh[0][1], point[2])
-            dis1 = self.gtool.calcPointsDistance(p1, self.mesh[0])
-            dis2 = self.gtool.calcPointsDistance(p1, self.mesh[1])
-            dis3 = self.gtool.calcPointsDistance(self.mesh[0], self.mesh[1])
+            dis1 = utils.calcPointsDistance(p1, self.mesh[0])
+            dis2 = utils.calcPointsDistance(p1, self.mesh[1])
+            dis3 = utils.calcPointsDistance(self.mesh[0], self.mesh[1])
 
             if dis1 + dis2 <= dis3 * 1.005:
                 return True

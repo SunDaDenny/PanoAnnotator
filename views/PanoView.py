@@ -38,7 +38,7 @@ class PanoView(QLabel):
 
     def createGeoPoint(self, sceenPos):
         
-        coords = utils.PanoTool().pos2coords(sceenPos, 
+        coords = utils.pos2coords(sceenPos, 
                                             (self.width(), self.height()))
         geoPoint = data.GeoPoint(self.__mainScene, coords)
 
@@ -53,7 +53,7 @@ class PanoView(QLabel):
 
     def selectByCoords(self, coords):
         
-        vec =  utils.PanoTool().coords2xyz(coords, 1)
+        vec =  utils.coords2xyz(coords, 1)
 
         isHit = False
         for wall in self.__mainScene.label.getLayoutWalls():
@@ -88,7 +88,7 @@ class PanoView(QLabel):
                         pen = QPen(Qt.red, 2, Qt.SolidLine)
                     qp.setPen(pen)
 
-                    pos = utils.PanoTool().coords2pos(point.coords, 
+                    pos = utils.coords2pos(point.coords, 
                                                     (self.width(), self.height()))
                     qp.drawEllipse(QPoint(pos[0], pos[1]), 5, 5)
                     #qp.drawLine(pos[0], 0, pos[0], self.height())
@@ -99,9 +99,9 @@ class PanoView(QLabel):
                     wallPoints = wall.meshProj
                     pnum = len(wallPoints)
                     for i in range(pnum):
-                        pos1 = utils.PanoTool().coords2pos(wallPoints[i], 
+                        pos1 = utils.coords2pos(wallPoints[i], 
                                                         (self.width(), self.height()))
-                        pos2 = utils.PanoTool().coords2pos(wallPoints[(i+1)%pnum], 
+                        pos2 = utils.coords2pos(wallPoints[(i+1)%pnum], 
                                                         (self.width(), self.height()))
                         if abs(pos1[0] - pos2[0]) > self.width()/10:
                             continue

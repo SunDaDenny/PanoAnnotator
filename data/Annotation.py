@@ -24,8 +24,6 @@ class Annotation(object):
         self.__cameraHeight = pm.defaultCameraHeight
         self.__layoutHeight = pm.defaultLayoutHeight
 
-        self.gtool = utils.GeometryTool()
-
     #####
     #Layout generation
     #####
@@ -44,7 +42,7 @@ class Annotation(object):
 
         self.__layoutPoints = []
 
-        manhxyz = self.gtool.alignManhattan(points)     
+        manhxyz = utils.alignManhattan(points)     
         for xyz in manhxyz:
             gp = GeoPoint(self.__mainScene, None, xyz)
             self.__layoutPoints.append(gp)
@@ -71,7 +69,7 @@ class Annotation(object):
             vec2 = tuple(np.array(walls[1].normal)*-0.5)
             concave1.moveByVector(vec1)
             concave2.moveByVector(vec2)
-            convex.moveByVector(self.gtool.vectorAdd(vec1,vec2))
+            convex.moveByVector(utils.vectorAdd(vec1,vec2))
 
             self.delLayoutPoint(center)
             self.__layoutPoints.append(concave1)

@@ -28,8 +28,6 @@ class MainWindow(QMainWindow, views.MainWindowUi):
 
         self.selectObjects = []
 
-        #self.depthPred = None
-
     def openImageFile(self):
         filePath, ok = QFileDialog.getOpenFileName(self, "open", configs.Params.fileDefaultOpenPath,
                                                   "Images (*.png *.jpg)")
