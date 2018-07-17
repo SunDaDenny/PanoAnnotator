@@ -28,15 +28,9 @@ class WallPlane(object):
         self.mesh = []
         self.meshProj = []
 
-        self.order = 0
+        self.id = 0
 
         self.init()
-
-    def __hash__(self):
-        return hash((self.order))
-    
-    def __eq__(self, other):
-        return (self.order) == (other.order)
     
     def init(self):
 
@@ -47,7 +41,7 @@ class WallPlane(object):
 
         global wpInstanceCount
         wpInstanceCount += 1
-        self.order = wpInstanceCount
+        self.id = wpInstanceCount
 
     def moveByNormal(self, val):
 
@@ -58,12 +52,10 @@ class WallPlane(object):
 
         self.calcMeshByPoints()
 
-        for others in self.__mainScene.label.getLayoutWalls():
-            if self.geoPoints[0] in others.geoPoints or \
-                self.geoPoints[1] in others.geoPoints:
-                    others.init()
-
     def calcMeshByPoints(self):
+
+        self.mesh = []
+        self.meshProj = []
         
         gps = self.geoPoints
         cameraH = self.__mainScene.label.getCameraHeight()

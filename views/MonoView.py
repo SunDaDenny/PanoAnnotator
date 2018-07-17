@@ -50,7 +50,7 @@ class MonoView(QOpenGLWidget):
         camPos = (-self.__camRot[0], -self.__camRot[1])
         screenSize = (self.width(), self.height())
 
-        coords = utils.PanoTool().cameraPoint2pano(camPos, screenPos,
+        coords = utils.cameraPoint2pano(camPos, screenPos,
                                                         screenSize, self.__fov)
         geoPoint = data.GeoPoint(self.__mainScene, coords)
 
@@ -161,7 +161,7 @@ class MonoView(QOpenGLWidget):
             self.__camRot[0] += 0.5 * dx
             self.__camRot[1] += 0.5 * dy
 
-        xf, yf = utils.PanoTool().cameraPoseFix(self.__camRot[0], self.__camRot[1])
+        xf, yf = utils.cameraPoseFix(self.__camRot[0], self.__camRot[1])
         self.__camRot[0] = xf
         self.__camRot[1] = yf
 

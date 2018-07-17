@@ -21,51 +21,53 @@ def calcPointsDistance(p1, p2):
                     math.pow(vec[1], 2) + 
                     math.pow(vec[2], 2) )
     return dis
+    
 
 def alignManhattan(gps):
 
+    class Edge:
+        def __init__(self, axis, p1):
+            self.axis = axis
+            self.points = [p1]
+            self.center = (0, 0, 0)
+
     n = len(gps)
     if n < 2:
-        print('cant align')
+        print('cant align manh world')
         return
-
-    alignAxis = [] #0:X, 1:Z
-    axisList = []
-    idxList = []; tmpList = []
+    
+    #create edges, calculate axis type and contain points
+    edges = []
     for i in range(n):
-        #print(str(i) + "  " + str((i+1)%n))
         dist = gps[i].getDistance(gps[(i+1)%n])
         axis = 0 if dist[0] >= dist[2] else 1
-        alignAxis.append(axis)
 
-    for i in range(n):
-        if (i+1)%n in tmpList:  
-            continue
+        if len(edges) == 0:
+            edges.append(Edge(axis, gps[i]))
+        elif not edges[-1].axis == axis:
+            edges[-1].points.append(gps[i])
+            edges.append(Edge(axis, gps[i]))
+        elif edges[-1].axis == axis:
+            edges[-1].points.append(gps[i])
 
-        tmpList = [i]
-        for j in range(1,n):
-            tmpList.append((i+j)%n)
-            if not alignAxis[i] == alignAxis[(i+j)%n]:
-                break
-        idxList.append(tmpList)
-        axisList.append(alignAxis[i])
-
-    centers = []
-    for i, l in enumerate(idxList):
-        tmpList = []
-        for idx in l:
-            tmpList.append(gps[idx])
-        center = getPointsAvg(tmpList)
-        centers.append(center)
-
-    xyzM = []
-    for i in range(len(centers)):
-        if axisList[i] == 0:
-            xyzM.append((centers[i-1][0] , gps[i].xyz[1], centers[i][2]))
-        elif axisList[i] == 1:
-            xyzM.append((centers[i][0] , gps[i].xyz[1], centers[i-1][2]))
+    #merge last edge to first if they have same axis
+    if edges[0].axis == edges[-1].axis:
+        edges[0].points += edges[-1].points
+        edges.pop()
     
-    return xyzM
+    #calculate each edge's center position
+    for edge in edges:
+        edge.center = getPointsAvg(edge.points)
+
+    #calculate manhattan corner points
+    manhPoints = []
+    for i in range(len(edges)):
+        if edges[i].axis == 0:
+            manhPoints.append((edges[i-1].center[0], 0, edges[i].center[2]))
+        elif edges[i].axis == 1:
+            manhPoints.append((edges[i].center[0], 0, edges[i-1].center[2]))
+
+    return manhPoints
 
 
 def calcCenterRegionAvgVal(data, centerPos, steps):

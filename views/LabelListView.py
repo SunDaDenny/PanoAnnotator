@@ -46,14 +46,14 @@ class LabelListView(QTreeWidget):
         for point in points:
             item = QTreeWidgetItem(self)
             item.setText(0, 'GeoPoint')
-            item.setText(1, str(point.order).zfill(5))
+            item.setText(1, str(point.id).zfill(5))
             self.itemLinks[point] = item
 
         walls = self.__mainScene.label.getLayoutWalls()
         for wall in walls:
             item = QTreeWidgetItem(self)
             item.setText(0, 'WallPlane')
-            item.setText(1, str(wall.order).zfill(5))
+            item.setText(1, str(wall.id).zfill(5))
             self.itemLinks[wall] = item
     
     def getSelectObjects(self):

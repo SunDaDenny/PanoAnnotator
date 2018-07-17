@@ -20,15 +20,9 @@ class GeoPoint(object):
         self.xyz = xyz
 
         self.type = 0 # [convex, concave, occul]
-        self.order = 0
+        self.id = 0
 
         self.initByScene()
-
-    def __hash__(self):
-        return hash((self.order))
-    
-    def __eq__(self, other):
-        return (self.order) == (other.order)
 
     def initByScene(self):
 
@@ -56,7 +50,7 @@ class GeoPoint(object):
         
         global gpInstanceCount
         gpInstanceCount += 1
-        self.order = gpInstanceCount
+        self.id = gpInstanceCount
 
         #self.calcGeometryType()
 

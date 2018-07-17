@@ -20,6 +20,7 @@ class Annotation(object):
         self.__layoutWalls = []
 
         self.__layoutFloor = None
+        self.__layoutCeiling = None
 
         self.__cameraHeight = pm.defaultCameraHeight
         self.__layoutHeight = pm.defaultLayoutHeight
@@ -36,6 +37,9 @@ class Annotation(object):
             plane = WallPlane(self.__mainScene, 
                              [points[i], points[(i+1)%pnum]])
             self.__layoutWalls.append(plane)
+       
+        self.__layoutFloor = FloorPlane(self.__mainScene, False)
+        self.__layoutCeiling = FloorPlane(self.__mainScene, True)
         
 
     def calcManhLayoutPoints(self, points):
@@ -54,6 +58,7 @@ class Annotation(object):
         self.calcManhLayoutPoints(self.__layoutPoints)
         self.genLayoutWallsByPoints(self.__layoutPoints)
 
+    #TEST
     def genConvexPoints(self, walls):
 
         if len(walls) < 2:
@@ -84,7 +89,6 @@ class Annotation(object):
     #####
     def addLayoutPoint(self, point):
 
-        self.__isClose = False
         if type(point) is GeoPoint:
             self.__layoutPoints.append(point)
             self.__layoutPoints.sort(key=lambda x:x.coords[0])
@@ -94,23 +98,20 @@ class Annotation(object):
 
     def delLastLayoutPoints(self):
         
-        self.__isClose = False
         if self.__layoutPoints:
-            self.__layoutPoints.sort(key=lambda x:x.order)
+            self.__layoutPoints.sort(key=lambda x:x.id)
             self.__layoutPoints.pop()
             self.__layoutPoints.sort(key=lambda x:x.coords[0])
             self.genLayoutWallsByPoints(self.__layoutPoints)
 
     def delLayoutPoint(self, point):
 
-        self.__isClose = False
         if point in self.__layoutPoints:
             self.__layoutPoints.remove(point)
             self.genLayoutWallsByPoints(self.__layoutPoints)
     
     def delLayoutWalls(self, walls):
 
-        self.__isClose = False
         for wall in walls:
             if not type(wall) == WallPlane:
                 continue
@@ -122,7 +123,6 @@ class Annotation(object):
 
     def mergeLayoutWalls(self, walls):
 
-        self.__isClose = False
         gps = []
         for wall in walls:
             if not type(wall) == WallPlane:
@@ -135,16 +135,21 @@ class Annotation(object):
 
         self.genLayoutWallsByPoints(self.__layoutPoints)
 
+    def moveWallByNormal(self, wall, val):
+
+        wall.moveByNormal(val)
+        self.calcLayoutMesh()
 
     def cleanLayout(self):
 
         self.__layoutPoints = []
         self.__layoutWalls = []
-
+        
+        self.__layoutFloor = None
+        self.__layoutCeiling = None
         #self.__cameraHeight = pm.defaultCameraHeight
         #self.__layoutHeight = pm.defaultLayoutHeight
         
-        self.__isClosed = False
     
     #####
     # Auto-Calulation part
@@ -184,20 +189,23 @@ class Annotation(object):
         self.calcManhLayoutPoints(samplePoints)
         self.genLayoutWallsByPoints(self.__layoutPoints)
 
+    def calcLayoutMesh(self):
+        for wall in self.__layoutWalls:
+            wall.calcMeshByPoints()
+        self.__layoutFloor.calcMeshByPoints()
+        self.__layoutCeiling.calcMeshByPoints()
     
     #####
     #Getter & Setter
     #####
     def setCameraHeight(self, cameraheight):
         self.__cameraHeight = cameraheight
-        for wall in self.__layoutWalls:
-            wall.calcMeshByPoints()
+        self.calcLayoutMesh()
 
     def setLayoutHeight(self, layoutHeight):
         self.__layoutHeight = layoutHeight
-        for wall in self.__layoutWalls:
-            wall.calcMeshByPoints()
-    
+        self.calcLayoutMesh()
+
     def getLayoutPoints(self):
         return self.__layoutPoints
 
@@ -206,6 +214,9 @@ class Annotation(object):
     
     def getLayoutFloor(self):
         return self.__layoutFloor
+
+    def getLayoutCeiling(self):
+        return self.__layoutCeiling
 
     def getCameraHeight(self):
         return self.__cameraHeight
