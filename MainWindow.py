@@ -26,8 +26,6 @@ class MainWindow(QMainWindow, views.MainWindowUi):
         self.resultView.setMainWindow(self)
         self.labelListView.setMainWindow(self)
 
-        self.selectObjects = []
-
     def openImageFile(self):
         filePath, ok = QFileDialog.getOpenFileName(self, "open", configs.Params.fileDefaultOpenPath,
                                                   "Images (*.png *.jpg)")

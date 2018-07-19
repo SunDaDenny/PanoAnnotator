@@ -31,6 +31,11 @@ class Annotation(object):
     def genLayoutWallsByPoints(self, points):
 
         self.__layoutWalls = []
+        self.__mainScene.selectObjs = []
+
+        #test
+        #self.calcManhLayoutPoints(points)
+        #points = self.__layoutPoints
 
         pnum = len(points)
         for i in range(0, pnum):
@@ -58,7 +63,6 @@ class Annotation(object):
         self.calcManhLayoutPoints(self.__layoutPoints)
         self.genLayoutWallsByPoints(self.__layoutPoints)
 
-    #TEST
     def genConvexPoints(self, walls):
 
         if len(walls) < 2:
@@ -67,22 +71,34 @@ class Annotation(object):
 
         center, outers = walls[0].getConnectPoint(walls[1])
         if center:
-            concave1 = GeoPoint(self.__mainScene, None, center.xyz)
-            concave2 = GeoPoint(self.__mainScene, None, center.xyz)
-            convex = GeoPoint(self.__mainScene, None, center.xyz)
             vec1 = tuple(np.array(walls[0].normal)*-0.5)
             vec2 = tuple(np.array(walls[1].normal)*-0.5)
-            concave1.moveByVector(vec1)
-            concave2.moveByVector(vec2)
-            convex.moveByVector(utils.vectorAdd(vec1,vec2))
+            concave1 = GeoPoint(self.__mainScene, None, utils.vectorAdd(center.xyz,vec1))
+            concave2 = GeoPoint(self.__mainScene, None, utils.vectorAdd(center.xyz,vec2))
+            vec3 = utils.vectorAdd(vec1,vec2)
+            convex = GeoPoint(self.__mainScene, None, utils.vectorAdd(center.xyz,vec3))
 
+            idx = self.__layoutPoints.index(center)
             self.delLayoutPoint(center)
-            self.__layoutPoints.append(concave1)
-            self.__layoutPoints.append(concave2)
-            self.__layoutPoints.append(convex)
-            self.__layoutPoints.sort(key=lambda x:x.coords[0])
-            self.genManhLayoutWalls()
+            self.__layoutPoints[idx:idx] = [concave1, convex ,concave2]
             
+            self.genManhLayoutWalls()
+    
+    def genSplitPoints(self,wall, point):
+
+        p1 = data.GeoPoint(self.__mainScene, None, point)
+        p2 = data.GeoPoint(self.__mainScene, None, point)
+
+        wP1idx = self.__layoutPoints.index(wall.geoPoints[0])
+        wP2idx = self.__layoutPoints.index(wall.geoPoints[1])
+
+        if abs(wP1idx - wP2idx) == len(self.__layoutPoints) - 1:
+            self.__layoutPoints.extend((p1, p2))
+        else:
+            idx = max([wP1idx,wP2idx])
+            self.__layoutPoints[idx:idx] = [p1, p2]
+            
+        self.genLayoutWallsByPoints(self.__layoutPoints)
 
     #####
     #Data list operation
@@ -90,8 +106,12 @@ class Annotation(object):
     def addLayoutPoint(self, point):
 
         if type(point) is GeoPoint:
+            for i, gp in enumerate(self.__layoutPoints):
+                if gp.coords[0] > point.coords[0]:
+                    self.__layoutPoints.insert(i, point)
+                    self.genLayoutWallsByPoints(self.__layoutPoints)
+                    return
             self.__layoutPoints.append(point)
-            self.__layoutPoints.sort(key=lambda x:x.coords[0])
             self.genLayoutWallsByPoints(self.__layoutPoints)
         else :
             print("Type error")
@@ -99,9 +119,11 @@ class Annotation(object):
     def delLastLayoutPoints(self):
         
         if self.__layoutPoints:
-            self.__layoutPoints.sort(key=lambda x:x.id)
-            self.__layoutPoints.pop()
-            self.__layoutPoints.sort(key=lambda x:x.coords[0])
+            tmp = self.__layoutPoints[:]
+            tmp.sort(key=lambda x:x.id)
+            delPoint = tmp.pop()
+            self.__layoutPoints.remove(delPoint)
+
             self.genLayoutWallsByPoints(self.__layoutPoints)
 
     def delLayoutPoint(self, point):
@@ -113,27 +135,25 @@ class Annotation(object):
     def delLayoutWalls(self, walls):
 
         for wall in walls:
-            if not type(wall) == WallPlane:
-                continue
             if wall in self.__layoutWalls:
                 for point in wall.geoPoints:
                     if point in self.__layoutPoints:
                         self.__layoutPoints.remove(point)
-        self.genLayoutWallsByPoints(self.__layoutPoints)
+        #self.genLayoutWallsByPoints(self.__layoutPoints)
+        self.genManhLayoutWalls()
 
     def mergeLayoutWalls(self, walls):
 
         gps = []
         for wall in walls:
-            if not type(wall) == WallPlane:
-                continue
             for point in wall.geoPoints:
                 if point not in gps:
                     gps.append(point)
                 elif point in self.__layoutPoints:
                     self.__layoutPoints.remove(point)
 
-        self.genLayoutWallsByPoints(self.__layoutPoints)
+        #self.genLayoutWallsByPoints(self.__layoutPoints)
+        self.genManhLayoutWalls()
 
     def moveWallByNormal(self, wall, val):
 
@@ -183,8 +203,6 @@ class Annotation(object):
             coords = (x, 0.5)
             geoPoint = GeoPoint(self.__mainScene, coords)
             samplePoints.append(geoPoint)
-
-        samplePoints.sort(key=lambda x:x.coords[0])
         
         self.calcManhLayoutPoints(samplePoints)
         self.genLayoutWallsByPoints(self.__layoutPoints)

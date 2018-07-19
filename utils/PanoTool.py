@@ -69,40 +69,6 @@ def xyz2coords(xyz):
 
     return coords
 
-def createPointCloud(color, depth):
-    ### color:np.array (h, w)
-    ### depth: np.array (h, w)
-
-    #print(color.shape)
-    #print(depth.shape)
-    heightScale = float(color.shape[0]) / depth.shape[0]
-    widthScale = float(color.shape[1]) / depth.shape[1]
-
-    pointCloud = []
-    for i in range(color.shape[0]):
-        if not i % pm.pcSampleStride == 0:
-            continue
-        for j in range(color.shape[1]):
-            if not j % pm.pcSampleStride == 0:
-                continue
-
-            rgb = (color[i][j][0], color[i][j][1], color[i][j][2])
-            d = depth[ int(i/heightScale) ][ int(j/widthScale) ]
-            if d <= 0:
-                continue
-
-            coordsX = float(j) / color.shape[1]
-            coordsY = float(i) / color.shape[0]
-            xyz = coords2xyz((coordsX, coordsY) ,d)
-
-            point = (xyz, rgb)
-            pointCloud.append(point)
-        
-        if i % int(color.shape[0]/10) == 0:
-            print("PC generating {0}%".format(i/color.shape[0]*100))
-    
-    return pointCloud
-
 def pos2coords(pos, size):
     
     coords = (float(pos[0]) / size[0], float(pos[1]) / size[1])
@@ -188,6 +154,50 @@ def mesh2pano(mesh):
         uvPoints.append(xyz2coords(point))
 
     return uvPoints
+
+def checkIsCrossPano(gp1, gp2):
+    
+    if gp1.xyz[2] > 0 and gp2.xyz[2] > 0:
+        if gp1.xyz[0] > 0 and gp2.xyz[0] < 0:
+            return True
+        if gp1.xyz[0] < 0 and gp2.xyz[0] > 0:
+            return True
+    
+    return False
+
+def createPointCloud(color, depth):
+    ### color:np.array (h, w)
+    ### depth: np.array (h, w)
+
+    #print(color.shape)
+    #print(depth.shape)
+    heightScale = float(color.shape[0]) / depth.shape[0]
+    widthScale = float(color.shape[1]) / depth.shape[1]
+
+    pointCloud = []
+    for i in range(color.shape[0]):
+        if not i % pm.pcSampleStride == 0:
+            continue
+        for j in range(color.shape[1]):
+            if not j % pm.pcSampleStride == 0:
+                continue
+
+            rgb = (color[i][j][0], color[i][j][1], color[i][j][2])
+            d = depth[ int(i/heightScale) ][ int(j/widthScale) ]
+            if d <= 0:
+                continue
+
+            coordsX = float(j) / color.shape[1]
+            coordsY = float(i) / color.shape[0]
+            xyz = coords2xyz((coordsX, coordsY) ,d)
+
+            point = (xyz, rgb)
+            pointCloud.append(point)
+        
+        if i % int(color.shape[0]/10) == 0:
+            print("PC generating {0}%".format(i/color.shape[0]*100))
+    
+    return pointCloud
 
 
 

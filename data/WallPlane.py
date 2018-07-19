@@ -85,7 +85,7 @@ class WallPlane(object):
             tmp += self.planeEquation[i] * vec[i]
 
         if tmp < 0.00001:
-            return False
+            return False, None
 
         t = -self.planeEquation[3] / tmp
         point = (vec[0] * t, vec[1] * t, vec[2] * t)
@@ -98,9 +98,9 @@ class WallPlane(object):
             dis3 = utils.calcPointsDistance(self.mesh[0], self.mesh[1])
 
             if dis1 + dis2 <= dis3 * 1.005:
-                return True
+                return True, point
 
-        return False
+        return False, None
 
     def getConnectPoint(self, other):
 
@@ -118,4 +118,4 @@ class WallPlane(object):
             if not point == center:
                 outers.append(point)
 
-        return center, outers     
+        return center, outers

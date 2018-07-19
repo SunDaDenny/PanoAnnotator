@@ -11,8 +11,7 @@ from PyQt5.QtGui import *
 
 import configs
 import estimator
-from .Annotation import *
-from .GeoPoint import *
+import data
 
 class Scene(object):
 
@@ -34,8 +33,10 @@ class Scene(object):
 
         self.__panoPointCloud = None
 
-        self.label = Annotation(self)
+        self.label = data.Annotation(self)
         self.depthPred = None
+
+        self.selectObjs = []
 
     def initScene(self, filePath, depthPred=None):
 
@@ -128,6 +129,17 @@ class Scene(object):
     def getPanoPointCloud(self):
         return self.__panoPointCloud
 
+    def getSelectObjs(self, objType=None):
+        objs = []
+        typeDict = {'GeoPoint':data.GeoPoint, 'WallPlane':data.WallPlane, 
+                    'FloorPlane':data.FloorPlane}
+        if objType:
+            for obj in self.selectObjs:
+                if type(obj) == typeDict[objType]:
+                    objs.append(obj)
+            return objs
+        elif objType == None:
+            return self.selectObjs
         
     
 

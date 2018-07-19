@@ -19,6 +19,7 @@ class PanoView(QLabel):
         self.__panoPixmap = QPixmap()
 
         self.__mode = 0 # 0: select mode 1: add point
+        self.__keyPress = 0 #0:none 1:crtl 2:shift 3:alt 
         self.__lastPos = QPoint()
 
         self.isLayoutLineEnable = True
@@ -42,30 +43,45 @@ class PanoView(QLabel):
         geoPoint = data.GeoPoint(self.__mainScene, coords)
 
         return geoPoint
-
-    def modeSwitch(self, mode):
-
-        if self.__mode == mode:
-            self.__mode = 0
-        else:
-            self.__mode = mode
+    
 
     def selectByCoords(self, coords):
         
         vec =  utils.coords2xyz(coords, 1)
 
-        def choose(self, obj):
-            select = self.__mainWindow.selectObjects
-            select.remove(obj) if obj in select else select.append(obj)
+        def choose(self, obj, point):
+            select = self.__mainScene.selectObjs
+            if obj in select:
+                select.remove(obj)
+            else:
+                if self.__keyPress == 0:
+                    select[:] = []
+                    select.append(obj)
+                elif self.__keyPress == 1:
+                    select.append(obj)
+                elif self.__keyPress == 2:
+                    select.append(obj)
+                    
+                    flag = False
+                    for wall in self.__mainScene.label.getLayoutWalls():
+                        if wall in select:
+                            flag = not flag
+                        if flag and not wall in select :
+                            select.append(wall)
+
+                elif self.__keyPress == 3:
+                    if point:
+                        self.__mainScene.label.genSplitPoints(obj, point)
 
         for wall in self.__mainScene.label.getLayoutWalls():
-            if wall.checkRayHit(vec):
-                choose(self, wall)
+            isHit, point = wall.checkRayHit(vec)
+            if isHit:
+                choose(self, wall, point)
                 return
 
         floor = self.__mainScene.label.getLayoutFloor()
         ceiling = self.__mainScene.label.getLayoutCeiling()
-        choose(self, floor) if vec[1] <= 0 else choose(self, ceiling)
+        choose(self, floor, None) if vec[1] <= 0 else choose(self, ceiling, None)
     
 
     #####
@@ -83,7 +99,7 @@ class PanoView(QLabel):
 
                 for point in self.__mainScene.label.getLayoutPoints():
 
-                    if point in self.__mainWindow.selectObjects:
+                    if point in self.__mainScene.selectObjs:
                         qp.setPen(QPen(Qt.yellow, 2, Qt.SolidLine))
                     else:
                         qp.setPen(QPen(Qt.red, 2, Qt.SolidLine))
@@ -121,7 +137,7 @@ class PanoView(QLabel):
 
                 #darw selected obj again
                 qp.setPen(QPen(Qt.yellow, 2, Qt.SolidLine))
-                for obj in self.__mainWindow.selectObjects:
+                for obj in self.__mainScene.selectObjs:
                     if type(obj) == data.WallPlane or type(obj) == data.FloorPlane:
                         drawMeshProj(self, obj)
             
@@ -152,14 +168,17 @@ class PanoView(QLabel):
                 if self.__mode == 0:
                     self.selectByCoords((event.x()/self.width(),
                                         event.y()/self.height()))
+                    self.__mainWindow.updateListView()
+                                        
                 elif self.__mode == 1:
                     geoPoint = self.createGeoPoint(screenPos)
                     self.__mainScene.label.addLayoutPoint(geoPoint)
                     self.__mainWindow.updateListView()
 
             elif event.button() == Qt.RightButton:
-                self.__mainScene.label.delLastLayoutPoints()
-                self.__mainWindow.updateListView()
+                if self.__mode == 1:
+                    self.__mainScene.label.delLastLayoutPoints()
+                    self.__mainWindow.updateListView()
                 
         self.__mainWindow.updateViews()
     
@@ -167,15 +186,14 @@ class PanoView(QLabel):
         
         dy = float(event.angleDelta().y())
 
-        for obj in self.__mainWindow.selectObjects:
-            if type(obj) is data.WallPlane:
-                self.__mainScene.label.moveWallByNormal(obj, dy/3000)
-                
-            elif type(obj) is data.FloorPlane and not obj.isCeiling():
+        for wall in self.__mainScene.getSelectObjs('WallPlane'):
+            self.__mainScene.label.moveWallByNormal(wall, dy/3000)
+        
+        for floorplane in self.__mainScene.getSelectObjs('FloorPlane'):
+            if not floorplane.isCeiling():
                 newH = self.__mainScene.label.getCameraHeight() - float(dy)/1000
                 self.__mainScene.label.setCameraHeight(newH)
-
-            elif type(obj) is data.FloorPlane and obj.isCeiling():
+            else:
                 newH = self.__mainScene.label.getLayoutHeight() + float(dy)/1000
                 self.__mainScene.label.setLayoutHeight(newH)
 
@@ -184,26 +202,40 @@ class PanoView(QLabel):
     def keyPressEvent(self, event):
 
         if(event.key() == Qt.Key_Control):
-            self.__mode = 1
-            self.__mainWindow.selectObjects = []
+            self.__keyPress = 1
+        elif(event.key() == Qt.Key_Shift):
+            self.__keyPress = 2
+        elif(event.key() == Qt.Key_Alt):
+            self.__keyPress = 3
+
+
+        if(event.key() == Qt.Key_S):    
+            self.__mode = self.__mode + 1 if self.__mode < 1 else 0
+
         
-        if(event.key() == Qt.Key_S):
+        if(event.key() == Qt.Key_Space):
             self.__mainScene.label.genManhLayoutWalls()
-            self.__mainWindow.updateListView()
-                                    
-        elif(event.key() == Qt.Key_X):
+
+        elif(event.key() == Qt.Key_I):
+            self.__mainScene.label.calcInitLayout()
+                                
+        elif(event.key() == Qt.Key_C):
             self.__mainScene.label.cleanLayout()
-            self.__mainWindow.updateListView()
 
         elif(event.key() == Qt.Key_D):
-            self.__mainScene.label.delLayoutWalls(self.__mainWindow.selectObjects)
-            self.__mainWindow.updateListView()
-            self.__mainWindow.selectObjects = []
+            walls = self.__mainScene.getSelectObjs('WallPlane')
+            self.__mainScene.label.delLayoutWalls(walls)
 
         elif(event.key() == Qt.Key_M):
-            self.__mainScene.label.mergeLayoutWalls(self.__mainWindow.selectObjects)
-            self.__mainWindow.updateListView()
-            self.__mainWindow.selectObjects = []
+            walls = self.__mainScene.getSelectObjs('WallPlane')
+            self.__mainScene.label.mergeLayoutWalls(walls)
+
+        elif(event.key() == Qt.Key_G):
+            walls = self.__mainScene.getSelectObjs('WallPlane')
+            self.__mainScene.label.genConvexPoints(walls)
+        
+        self.__mainWindow.updateListView()
+
 
         if (event.key() == Qt.Key_1):
             self.isLayoutLineEnable = not self.isLayoutLineEnable
@@ -214,7 +246,7 @@ class PanoView(QLabel):
         self.__mainWindow.updateViews()
         
     def keyReleaseEvent(self, event):
-        self.__mode = 0
+        self.__keyPress = 0
 
     def enterEvent(self, event):
         self.setFocus(True)

@@ -62,7 +62,7 @@ class LabelListView(QTreeWidget):
         walls = []
         for obj, item in self.itemLinks.items():
             if item in self.selectedItems():
-                if obj in self.__mainWindow.selectObjects:
+                if obj in self.__mainScene.selectObjs:
                     if type(obj) == data.GeoPoint:
                         gps.append(obj)
                     elif type(obj) == data.WallPlane:
@@ -73,11 +73,11 @@ class LabelListView(QTreeWidget):
 
         for obj, item in self.itemLinks.items():
             if item in self.selectedItems():
-                if obj not in self.__mainWindow.selectObjects:
-                    self.__mainWindow.selectObjects.append(obj)
+                if obj not in self.__mainScene.selectObjs:
+                    self.__mainScene.selectObjs.append(obj)
             else:
-                if obj in self.__mainWindow.selectObjects:
-                    self.__mainWindow.selectObjects.remove(obj)
+                if obj in self.__mainScene.selectObjs:
+                    self.__mainScene.selectObjs.remove(obj)
     
     def keyPressEvent(self, event):
 
