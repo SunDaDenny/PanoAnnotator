@@ -2,8 +2,8 @@ import sys
 import numpy as np
 import math
 
+import utils
 import configs.Params as pm
-
 
 def coords2uv(coords):  
     #coords: 0.0 - 1.0
@@ -80,18 +80,24 @@ def coords2pos(coords, size):
             int(coords[1] * (size[1]-1)))
     return pos
 
-def cameraPoseFix(x, y):
-    ### x : -180 ~ 180
-    ### y : -90 ~ 90
-    if x > 180:
-        x -= 360
-    elif x < -180:
-        x += 360
-    if y > 90:
-        y = 90
-    elif y < -90:
-        y = -90
-    return x, y
+def points2coords(points):
+
+    ans = []
+    for p in points:
+        ans.append(xyz2coords(p))
+    return ans
+
+def pointsCrossPano(p1, p2):
+    
+    if p1[2] > 0 and p2[2] > 0:
+        if p1[0] < 0 and p2[0] > 0:
+            return True, p1, p2
+        elif p1[0] > 0 and p2[0] < 0:
+            return True, p2, p1
+        else:
+            return False, None, None
+    else:
+        return False, None, None
 
 def cameraPoint2pano(camPose, screenPos, screenSize, fov):
 
@@ -128,49 +134,10 @@ def cameraPoint2pano(camPose, screenPos, screenSize, fov):
 
     return panoCoords
 
-def mesh2pano(mesh):
-
-    projPoints = []
-    step = pm.meshProjSampleStep
-
-    for j in range(len(mesh)):
-        dxyz = []
-        for i in range(3):
-            if j + 1 >= len(mesh):
-                ref = 0
-            else :
-                ref = j + 1
-            dxyz.append(mesh[ref][i] - mesh[j][i])
-        
-        projPoints.append(mesh[j])
-        for i in range(step - 1):
-            px = mesh[j][0] + (dxyz[0] / step) * i
-            py = mesh[j][1] + (dxyz[1] / step) * i
-            pz = mesh[j][2] + (dxyz[2] / step) * i
-            projPoints.append((px, py, pz))
-
-    uvPoints = []
-    for point in projPoints:
-        uvPoints.append(xyz2coords(point))
-
-    return uvPoints
-
-def checkIsCrossPano(gp1, gp2):
-    
-    if gp1.xyz[2] > 0 and gp2.xyz[2] > 0:
-        if gp1.xyz[0] > 0 and gp2.xyz[0] < 0:
-            return True
-        if gp1.xyz[0] < 0 and gp2.xyz[0] > 0:
-            return True
-    
-    return False
-
 def createPointCloud(color, depth):
     ### color:np.array (h, w)
     ### depth: np.array (h, w)
 
-    #print(color.shape)
-    #print(depth.shape)
     heightScale = float(color.shape[0]) / depth.shape[0]
     widthScale = float(color.shape[1]) / depth.shape[1]
 
@@ -194,8 +161,8 @@ def createPointCloud(color, depth):
             point = (xyz, rgb)
             pointCloud.append(point)
         
-        if i % int(color.shape[0]/10) == 0:
-            print("PC generating {0}%".format(i/color.shape[0]*100))
+        #if i % int(color.shape[0]/10) == 0:
+        #    print("PC generating {0}%".format(i/color.shape[0]*100))
     
     return pointCloud
 

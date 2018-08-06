@@ -24,6 +24,10 @@ class GeoPoint(object):
 
         self.initByScene()
 
+        global gpInstanceCount
+        gpInstanceCount += 1
+        self.id = gpInstanceCount
+
     def initByScene(self):
 
         if self.coords == None:
@@ -40,26 +44,21 @@ class GeoPoint(object):
         depthData = self.__scene.getPanoDepthData()
         
         depthPos = utils.coords2pos(coordsT, depthData.shape)
-        avgVal= utils.calcCenterRegionAvgVal(depthData, 
-                                                            depthPos, (5, 5))
-        self.depth = avgVal
+        depthMean = utils.imageRegionMean(depthData, depthPos, (5, 5))
+        self.depth = depthMean
         #self.depth = depthData[depthPos[0]][depthPos[1]]
 
         if self.xyz == None:
             self.xyz = utils.coords2xyz(self.coords, self.depth)
         
-        global gpInstanceCount
-        gpInstanceCount += 1
-        self.id = gpInstanceCount
-
         #self.calcGeometryType()
 
     def moveByVector(self, vec):
-        self.xyz = (self.xyz[0] + vec[0], 
-                    self.xyz[1] + vec[1], 
-                    self.xyz[2] + vec[2])
+
+        self.xyz = utils.vectorAdd(self.xyz, vec)
         self.coords = utils.xyz2coords(self.xyz)
 
+    '''
     def calcGeometryType(self):
 
         coordsT = (self.coords[1], self.coords[0])
@@ -91,25 +90,6 @@ class GeoPoint(object):
         #print("L : {0}   R : {1}".format(avgL, avgR))
         if abs(avgL - avgR) > 0.75:
             self.type = 2
-
-    def getDistance(self, point):
-
-        dx = math.pow(point.xyz[0] - self.xyz[0], 2)
-        dy = math.pow(point.xyz[1] - self.xyz[1], 2)
-        dz = math.pow(point.xyz[2] - self.xyz[2], 2)
-        dist = (dx, dy, dz)
-
-        return dist
-
-    def getPointsAvg(self, points):
-
-        avg = list(self.xyz)
-        for p in points:
-            for i in range(3):
-                avg[i] = avg[i] + p.xyz[i]
-        for i in range(3):
-            avg[i] = avg[i]/ (len(points)+1)
-        
-        return tuple(avg)
+    '''
 
     

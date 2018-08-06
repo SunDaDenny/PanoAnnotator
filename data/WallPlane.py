@@ -11,111 +11,117 @@ wpInstanceCount = 0
 
 class WallPlane(object):
 
-    def __init__(self, scene, geoPoints):
+    def __init__(self, scene, gPoints):
 
         self.__mainScene = scene
 
-        if(len((geoPoints))<2):
+        if(len((gPoints))<2):
             print("Two point at least")
             
-        self.geoPoints = geoPoints
+        self.gPoints = gPoints
         self.color = (random.random(), random.random(), 
                       random.random())
 
         self.normal = (0, 0, 0)
         self.planeEquation = (0, 0, 0, 0) 
 
-        self.mesh = []
-        self.meshProj = []
+        self.corners = []
+        self.edges = []
 
         self.id = 0
 
         self.init()
-    
-    def init(self):
-
-        #gps = self.geoPoints
-        #gps.sort(key=lambda x:x.coords[0])
-
-        self.calcMeshByPoints()
 
         global wpInstanceCount
         wpInstanceCount += 1
         self.id = wpInstanceCount
+    
+    def init(self):
+
+        self.updateGeometry()
 
     def moveByNormal(self, val):
 
-        vec = [self.normal[0]*val, self.normal[1]*val, self.normal[2]*val]
-        
-        for gp in self.geoPoints:
+        vec = utils.vectorMultiplyC(self.normal, val)
+        for gp in self.gPoints:
             gp.moveByVector(vec)
 
-        self.calcMeshByPoints()
+        self.updateGeometry()
 
-    def calcMeshByPoints(self):
+    def updateGeometry(self):
 
-        self.mesh = []
-        self.meshProj = []
-        
-        gps = self.geoPoints
-        cameraH = self.__mainScene.label.getCameraHeight()
-        cam2ceilH = self.__mainScene.label.getCam2CeilHeight()
+        self.updateCorners()
+        self.updateEdges()
 
-        self.mesh = [(gps[0].xyz[0], cam2ceilH, gps[0].xyz[2]),
-                    (gps[1].xyz[0], cam2ceilH, gps[1].xyz[2]),
-                    (gps[1].xyz[0], -cameraH, gps[1].xyz[2]),
-                    (gps[0].xyz[0], -cameraH, gps[0].xyz[2])]
+        self.normal = utils.pointsNormal(self.corners[0].xyz,self.corners[1].xyz,
+                                        self.corners[3].xyz)
 
-        vec1 = list(utils.calcPointsDirection(self.mesh[0], self.mesh[1]))
-        vec2 = list(utils.calcPointsDirection(self.mesh[0], self.mesh[3]))
-        
-        self.normal = tuple(np.cross(vec1,vec2))
-        
-        pd = 0
-        for i in range(3):
-            pd -= self.normal[i] * self.mesh[0][i]
-        self.planeEquation = self.normal + (pd,)
+        self.planeEquation = utils.planeEquation(self.normal, self.corners[0].xyz)
 
-        self.meshProj = utils.mesh2pano(self.mesh)
+    def updateCorners(self):
 
+        gps = self.gPoints
+        scene = self.__mainScene
+        cameraH = scene.label.getCameraHeight()
+        cam2ceilH = scene.label.getCam2CeilHeight()
+
+        self.corners = [data.GeoPoint(scene, None, 
+                        (gps[0].xyz[0], cam2ceilH, gps[0].xyz[2])),
+                        data.GeoPoint(scene, None, 
+                        (gps[1].xyz[0], cam2ceilH, gps[1].xyz[2])),
+                        data.GeoPoint(scene, None, 
+                        (gps[1].xyz[0], -cameraH, gps[1].xyz[2])),
+                        data.GeoPoint(scene, None, 
+                        (gps[0].xyz[0], -cameraH, gps[0].xyz[2]))]
+    
+    def updateEdges(self):
+
+        scene = self.__mainScene
+        self.edges = [data.GeoEdge(scene, (self.corners[0], self.corners[1])),
+                    data.GeoEdge(scene, (self.corners[1], self.corners[2])),
+                    data.GeoEdge(scene, (self.corners[2], self.corners[3])),
+                    data.GeoEdge(scene, (self.corners[3], self.corners[0]))]
+
+    #manh only
     def checkRayHit(self, vec, orig=(0,0,0)):
-
-        tmp = 0
-        for i in range(3):
-            tmp += self.planeEquation[i] * vec[i]
+        
+        tmp = utils.vectorDot(self.normal, vec)
 
         if tmp < 0.00001:
             return False, None
 
         t = -self.planeEquation[3] / tmp
-        point = (vec[0] * t, vec[1] * t, vec[2] * t)
+        point = utils.vectorMultiplyC(vec, t)
 
-        if self.mesh[2][1] <= point[1] <= self.mesh[0][1]:
+        cs = self.corners
+        if cs[2].xyz[1] <= point[1] <= cs[0].xyz[1]:
 
-            p1 = (point[0], self.mesh[0][1], point[2])
-            dis1 = utils.calcPointsDistance(p1, self.mesh[0])
-            dis2 = utils.calcPointsDistance(p1, self.mesh[1])
-            dis3 = utils.calcPointsDistance(self.mesh[0], self.mesh[1])
+            p1 = (point[0], cs[0].xyz[1], point[2])
+            dis1 = utils.pointsDistance(p1, cs[0].xyz)
+            dis2 = utils.pointsDistance(p1, cs[1].xyz)
+            dis3 = utils.pointsDistance(cs[0].xyz, cs[1].xyz)
 
-            if dis1 + dis2 <= dis3 * 1.005:
+            if dis1 + dis2 <= dis3 * 1.0005:
                 return True, point
 
         return False, None
 
+    '''
     def getConnectPoint(self, other):
 
         center = None        
-        for p1 in self.geoPoints:
-            for p2 in other.geoPoints:
+        for p1 in self.gPoints:
+            for p2 in other.gPoints:
                 if p1 == p2:
                     center = p1
         if not center:
             return None, None
         
         outers = []
-        gps = self.geoPoints + other.geoPoints
+        gps = self.gPoints + other.gPoints
         for point in gps:
             if not point == center:
                 outers.append(point)
 
         return center, outers
+    '''

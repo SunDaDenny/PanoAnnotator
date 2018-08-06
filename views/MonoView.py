@@ -61,17 +61,16 @@ class MonoView(QOpenGLWidget):
         glBegin(GL_QUADS)
         rgb = wallPlane.color
         glColor4f(rgb[0], rgb[1], rgb[2], 0.2)
-        mesh = wallPlane.mesh
-        for vert in mesh:
-            glVertex3f(vert[0], vert[1], vert[2])
+        for p in wallPlane.corners:
+            glVertex3f(p.xyz[0], p.xyz[1], p.xyz[2])
         glEnd()
 
         glLineWidth(3)
         glBegin(GL_LINE_STRIP)
         #glLineWidth(3)
         glColor3f(0, 0, 1)
-        for vert in mesh:
-            glVertex3f(vert[0], vert[1], vert[2])
+        for p in wallPlane.corners:
+            glVertex3f(p.xyz[0], p.xyz[1], p.xyz[2])
         glEnd()
 
 
@@ -79,7 +78,6 @@ class MonoView(QOpenGLWidget):
     #Override
     #####
     def initializeGL(self):
-        print("initializeGL")
 
         glClearColor(0.0, 0.0, 0.0, 1.0)
         glClearDepth(1.0)
@@ -132,7 +130,6 @@ class MonoView(QOpenGLWidget):
         glPopMatrix()
     
     def resizeGL(self, width, height):
-        print("resizeGL")
 
         side = min(width, height)
         glViewport((width - side) // 2, (height - side) // 2, side, side)
@@ -161,7 +158,7 @@ class MonoView(QOpenGLWidget):
             self.__camRot[0] += 0.5 * dx
             self.__camRot[1] += 0.5 * dy
 
-        xf, yf = utils.cameraPoseFix(self.__camRot[0], self.__camRot[1])
+        xf, yf = self.cameraPoseFix(self.__camRot[0], self.__camRot[1])
         self.__camRot[0] = xf
         self.__camRot[1] = yf
 
@@ -176,7 +173,7 @@ class MonoView(QOpenGLWidget):
 
             if self.__isAvailable:
                 geoPoint = self.createGeoPoint(screenPos)
-                self.__mainScene.label.addLayoutPoint(geoPoint)
+                #self.__mainScene.label.addLayoutPoint(geoPoint)
         
         else :
             self.__isDrag = False
@@ -198,6 +195,20 @@ class MonoView(QOpenGLWidget):
 
     def setMainWindow(self, mainWindow):
         self.__mainWindow = mainWindow
+
+
+    def cameraPoseFix(self, x, y):
+        ### x : -180 ~ 180
+        ### y : -90 ~ 90
+        if x > 180:
+            x -= 360
+        elif x < -180:
+            x += 360
+        if y > 90:
+            y = 90
+        elif y < -90:
+            y = -90
+        return x, y
 
     def genTextureByImage(self, image):
 

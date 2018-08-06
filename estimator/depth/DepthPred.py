@@ -32,7 +32,6 @@ class DepthPred(object):
         self.saver = tf.train.Saver()
         
         self.initEstimator()
-        print("model build")
         
 
     def initEstimator(self):
@@ -40,7 +39,7 @@ class DepthPred(object):
         init_op = tf.variables_initializer(tf.global_variables())
         print("sess init")
         self.sess.run(init_op)
-        print("sess model loading")
+        print("model loading")
         self.saver.restore(self.sess, MODEL_FILE)
         print("done")
         self.__isAvailable = True
@@ -55,11 +54,9 @@ class DepthPred(object):
 
         input_data = np.zeros((BATCH_SIZE,INPUT_SHAPE[1],INPUT_SHAPE[2],INPUT_SHAPE[3]))
         input_data[0] = image_data
-        print(input_data.shape)
+        #print(input_data.shape)
 
         pred = self.sess.run(self.net.get_output(), feed_dict={self.input_node: input_data})
-        print(pred.shape)        
-        #print(pred[0].shape)
-        #print(np.squeeze(pred[0]).shape)
+        #print(pred.shape)        
 
         return np.squeeze(pred[0])

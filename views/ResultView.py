@@ -23,15 +23,13 @@ class ResultView(QOpenGLWidget):
         self.__mainScene = None
 
         ### trackball
-        self.camRot = [0.0, 0.0, 0.0]
-        self.camPos = [0.0, 0.0, 10.0]
+        self.camRot = [0.0, 90.0, 0.0]
+        self.camPos = [0.0, 0.0, 12.0]
         self.__lastPos = QPoint()
 
         self.isPointCloudEnable = False
         self.isLayoutWallEnable = True
         self.isLayoutPointEnable = True
-
-        #self.geoTool = utils.GeometryTool()
 
     #####
     #Comstum Method
@@ -54,9 +52,10 @@ class ResultView(QOpenGLWidget):
         #glColor3f(rgb[0], rgb[1], rgb[2])
         glColor4f(rgb[0], rgb[1], rgb[2], 0.75)
         #glNormal3f(0.0, 0.0, 1.0)
-        mesh = wallPlane.mesh
-        for vert in mesh:
-            glVertex3f(vert[0], vert[1], vert[2])
+
+        for p in wallPlane.corners:
+            glVertex3f(p.xyz[0], p.xyz[1], p.xyz[2])
+
         glEnd()
 
     #####
@@ -99,7 +98,7 @@ class ResultView(QOpenGLWidget):
             layoutPoints = self.__mainScene.label.getLayoutPoints()
             layoutWalls = self.__mainScene.label.getLayoutWalls()
             
-            if self.isPointCloudEnable:
+            if pointCloud and self.isPointCloudEnable:
                 glPointSize(3)
                 glBegin(GL_POINTS)
                 for point in pointCloud:

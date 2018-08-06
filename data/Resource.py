@@ -1,0 +1,30 @@
+
+import os
+import sys
+import numpy as np
+from PIL import Image as Image
+
+from PyQt5.QtGui import *
+
+class Resource(object):
+
+    def __init__(self, name):
+
+        self.name = name
+
+        self.path = ''
+        self.image = None #(w,h)
+        self.data = None #(h,w)
+        self.pixmap = None
+
+    def initByImageFile(self, filePath):
+        
+        if os.path.exists(filePath):
+            self.path = filePath
+            self.image = Image.open(filePath)
+            self.data = np.asarray(self.image).astype(np.float)           
+            self.pixmap = QPixmap(filePath)
+            return True
+        else :
+            print("No default {0} image found".format(self.name))
+            return False

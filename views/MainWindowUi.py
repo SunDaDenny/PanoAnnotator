@@ -37,7 +37,7 @@ class MainWindowUi(object):
         #####
         self.panoView = PanoView(self.centralWidget)
         self.panoView.setObjectName("panoView")
-        self.panoView.setGeometry(QtCore.QRect(50, 50, 720, 360))
+        self.panoView.setGeometry(QtCore.QRect(25, 25, 800, 400))
         self.panoView.setScaledContents(True)
         #self.panoView.setMinimumSize(QtCore.QSize(1024, 512))
         self.panoView.setText("PanoView Widget")
@@ -48,21 +48,21 @@ class MainWindowUi(object):
         #####
         self.monoView = MonoView(self.centralWidget)
         self.monoView.setObjectName("monoView")
-        self.monoView.setGeometry(QtCore.QRect(50, 450, 720, 360))
+        self.monoView.setGeometry(QtCore.QRect(25, 450, 800, 400))
 
         #####
         #Result preview view
         #####
         self.resultView = ResultView(self.centralWidget)
         self.resultView.setObjectName("resultView")
-        self.resultView.setGeometry(QtCore.QRect(820, 50 , 720, 360))
+        self.resultView.setGeometry(QtCore.QRect(850, 25 , 720, 400))
 
         #####
         #Data operation list
         ####
         self.labelListView = LabelListView(self.centralWidget)
         self.labelListView.setObjectName("LabelListView")
-        self.labelListView.setGeometry(QtCore.QRect(820, 450, 360, 360))
+        self.labelListView.setGeometry(QtCore.QRect(850, 450, 720, 400))
 
         mainWindow.setCentralWidget(self.centralWidget)
        

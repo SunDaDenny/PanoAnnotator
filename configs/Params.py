@@ -2,16 +2,17 @@
 class Params(object):
 
     #MainWindows
-    fileDefaultOpenPath = "D:/Dataset/"
-    depthFileDefaultName = "depth_p.png"
+    fileDefaultOpenPath = "D:/Dataset/Test/all/"
+    depthFileDefaultName = "pano_depth.png"
+    linesFileDefaultName = "pano_edge_07.png"
+    omapFileDefaultName = "pano_omap_07.png"
 
     #Annotation
-    defaultCameraHeight = 1.6
+    defaultCameraHeight = 1.8
     defaultLayoutHeight = 3.2
 
     layoutHeightSampleRange = 0.3
-    layoutHeightSampleStep = 0.01
-    
+    layoutHeightSampleStep = 0.01 
 
     #MonoView
     monoViewFov = (-1, 60)
@@ -21,7 +22,6 @@ class Params(object):
                         (0.5, 0.5, 0.0),
                         (0.5, 0.0, 0.5)]
 
-
     #PanoTool
-    pcSampleStride = 10
-    meshProjSampleStep = 100
+    pcSampleStride = 30
+    meshProjSampleStep = 30
