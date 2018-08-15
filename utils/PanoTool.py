@@ -1,4 +1,3 @@
-import sys
 import numpy as np
 import math
 
@@ -79,6 +78,11 @@ def coords2pos(coords, size):
     pos = (int(coords[0] * (size[0]-1)), 
             int(coords[1] * (size[1]-1)))
     return pos
+
+def posTranspose(pos):
+
+    ans = (pos[1], pos[0])
+    return ans
 
 def points2coords(points):
 

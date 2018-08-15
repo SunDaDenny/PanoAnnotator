@@ -1,12 +1,10 @@
-import sys
 import numpy as np
-import math
 
-from .GeometryTool import *
+import utils
 
 def pointsAlignAxis(p1, p2):
 
-    dist = pointsDirectionPow(p1, p2, 2)
+    dist = utils.pointsDirectionPow(p1, p2, 2)
     axis = 0 if dist[0] >= dist[2] else 1
     return axis
 
@@ -52,7 +50,7 @@ def alignManhattan(gps):
     #calculate each edge's center position
     for edge in edges:
         pList = [p.xyz for p in edge.points]
-        edge.center = pointsMean(pList)
+        edge.center = utils.pointsMean(pList)
 
     #calculate manhattan corner points
     manhPoints = []

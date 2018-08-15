@@ -1,20 +1,17 @@
-
-import sys
-import math
 import numpy as np
 
+import data
 import utils
 import configs.Params as pm
-from .Scene import *
-from .GeoPoint import *
-from .WallPlane import *
-from .FloorPlane import *
+import estimator
 
 class Annotation(object):
 
     def __init__(self, scene):
         
-        self.__mainScene = scene
+        self.__scene = scene
+        #self.pushPred = estimator.PushPredLite(scene)
+        self.pushPred = estimator.PushPred(scene)
 
         self.__layoutPoints = []
         self.__layoutWalls = []
@@ -34,16 +31,16 @@ class Annotation(object):
     def genLayoutWallsByPoints(self, points):
 
         self.__layoutWalls = []
-        self.__mainScene.selectObjs = []
+        self.__scene.selectObjs = []
 
         pnum = len(points)
         for i in range(0, pnum):
-            plane = WallPlane(self.__mainScene, 
+            plane = data.WallPlane(self.__scene, 
                              [points[i], points[(i+1)%pnum]])
             self.__layoutWalls.append(plane)
        
-        self.__layoutFloor = FloorPlane(self.__mainScene, False)
-        self.__layoutCeiling = FloorPlane(self.__mainScene, True)
+        self.__layoutFloor = data.FloorPlane(self.__scene, False)
+        self.__layoutCeiling = data.FloorPlane(self.__scene, True)
 
     def calcManhLayoutPoints(self, points):
 
@@ -51,7 +48,7 @@ class Annotation(object):
 
         manhxyz = utils.alignManhattan(points)     
         for xyz in manhxyz:
-            gp = GeoPoint(self.__mainScene, None, xyz)
+            gp = data.GeoPoint(self.__scene, None, xyz)
             self.__layoutPoints.append(gp)
 
     def genManhLayoutWalls(self):
@@ -63,13 +60,13 @@ class Annotation(object):
     
     def genSplitPoints(self,wall, point):
 
-        p1 = data.GeoPoint(self.__mainScene, None, point)
-        p2 = data.GeoPoint(self.__mainScene, None, point)
+        p1 = data.GeoPoint(self.__scene, None, point)
+        p2 = data.GeoPoint(self.__scene, None, point)
 
         wP1idx = self.__layoutPoints.index(wall.gPoints[0])
         wP2idx = self.__layoutPoints.index(wall.gPoints[1])
 
-        if abs(wP1idx - wP2idx) == len(self.__layoutPoints) - 1:
+        if abs(wP1idx - wP2idx) == len(self.__layoutPoints) - 1: 
             self.__layoutPoints.extend((p1, p2))
         else:
             idx = max([wP1idx,wP2idx])
@@ -78,11 +75,11 @@ class Annotation(object):
         self.genLayoutWallsByPoints(self.__layoutPoints)
 
     #####
-    #Data list operation
+    #Layout operation
     #####
     def addLayoutPoint(self, point):
 
-        if type(point) is GeoPoint:
+        if type(point) is data.GeoPoint:
             for i, gp in enumerate(self.__layoutPoints):
                 if gp.coords[0] > point.coords[0]:
                     self.__layoutPoints.insert(i, point)
@@ -93,6 +90,12 @@ class Annotation(object):
         else :
             print("Type error")
 
+    def delLayoutPoint(self, point):
+
+        if point in self.__layoutPoints:
+            self.__layoutPoints.remove(point)
+            self.genLayoutWallsByPoints(self.__layoutPoints)
+
     def delLastLayoutPoints(self):
         
         if self.__layoutPoints:
@@ -100,15 +103,8 @@ class Annotation(object):
             tmp.sort(key=lambda x:x.id)
             delPoint = tmp.pop()
             self.__layoutPoints.remove(delPoint)
-
             self.genLayoutWallsByPoints(self.__layoutPoints)
 
-    def delLayoutPoint(self, point):
-
-        if point in self.__layoutPoints:
-            self.__layoutPoints.remove(point)
-            self.genLayoutWallsByPoints(self.__layoutPoints)
-    
     def delLayoutWalls(self, walls):
 
         for wall in walls:
@@ -138,11 +134,6 @@ class Annotation(object):
                 delWalls.append(wall)
         self.delLayoutWalls(delWalls)
 
-    def moveWallByNormal(self, wall, val):
-
-        wall.moveByNormal(val)
-        self.calcLayoutMesh()
-
     def cleanLayout(self):
 
         self.__layoutPoints = []
@@ -150,10 +141,32 @@ class Annotation(object):
         
         self.__layoutFloor = None
         self.__layoutCeiling = None
-        #self.__cameraHeight = pm.defaultCameraHeight
-        #self.__layoutHeight = pm.defaultLayoutHeight
-        
+        self.__cameraHeight = pm.defaultCameraHeight
+        self.__layoutHeight = pm.defaultLayoutHeight
     
+    #####
+    # Objects manual operation
+    #####
+    def moveWallByNormal(self, wall, val):
+
+        wall.moveByNormal(val)
+        self.updateLayoutGeometry()
+    
+    def moveFloor(self, val):
+        self.__cameraHeight += val
+        self.__layoutHeight += val
+        self.updateLayoutGeometry()
+    
+    def moveCeiling(self, val):
+        self.__layoutHeight += val
+        self.updateLayoutGeometry()
+
+    #####
+    # Objects automatic operation
+    #####
+    def moveWallByPred(self, wall, val):
+        self.pushPred.optimizeWall(wall, val)
+
     #####
     # Auto-Calulation part
     #####
@@ -163,7 +176,7 @@ class Annotation(object):
             tmpList = []
             for i in np.arange(0.0, 1.0, 0.01):
                 for j in np.arange(range[0], range[1], step):
-                    tmpGp = GeoPoint(self.__mainScene, (i,j))
+                    tmpGp = data.GeoPoint(self.__scene, (i,j))
                     if not tmpGp.xyz[1] == 0:
                         tmpList.append(tmpGp.xyz[1])
             return np.mean(tmpList)
@@ -184,26 +197,29 @@ class Annotation(object):
         samplePoints = []
         for x in np.arange(0.0, 1.0, 0.01):
             coords = (x, 0.5)
-            geoPoint = GeoPoint(self.__mainScene, coords)
+            geoPoint = data.GeoPoint(self.__scene, coords)
             samplePoints.append(geoPoint)
         
         self.calcManhLayoutPoints(samplePoints)
         self.genLayoutWallsByPoints(self.__layoutPoints)
 
         self.mergeTrivialWalls()
-        self.calcLayoutMap()
+        self.pushPred.optimizeLayout()
+        self.mergeTrivialWalls()
 
-    def calcLayoutMesh(self):
+    def updateLayoutGeometry(self):
+
         for wall in self.__layoutWalls:
             wall.updateGeometry()
         self.__layoutFloor.updateGeometry()
         self.__layoutCeiling.updateGeometry()
 
-        self.calcLayoutMap()
 
+    '''
     def calcLayoutMap(self):
 
         size = [256, 512, 3]
+        #size = [128, 256, 3]
 
         #Edge map
         edgeMap = np.zeros(size)
@@ -216,7 +232,7 @@ class Annotation(object):
         self.__layoutEdgeMap = edgeMapBlur
 
         edgeMapPixmap = utils.data2Pixmap(self.__layoutEdgeMap)
-        self.__mainScene.setLayoutEdgeMapPixmap(edgeMapPixmap)
+        self.__scene.setLayoutEdgeMapPixmap(edgeMapPixmap)
     
         #Normal map
         normalMap = np.zeros(size)
@@ -227,18 +243,17 @@ class Annotation(object):
         self.__layoutNormalMap = normalMap
 
         normalMapPixmap = utils.data2Pixmap(self.__layoutNormalMap)
-        self.__mainScene.setLayoutNormalMapPixmap(normalMapPixmap)
+        self.__scene.setLayoutNormalMapPixmap(normalMapPixmap)
+    '''
 
     #####
     #Getter & Setter
     #####
-    def setCameraHeight(self, cameraheight):
-        self.__cameraHeight = cameraheight
-        self.calcLayoutMesh()
+    def setCameraHeight(self, cameraH):
+        self.__cameraHeight = cameraH
 
-    def setLayoutHeight(self, layoutHeight):
-        self.__layoutHeight = layoutHeight
-        self.calcLayoutMesh()
+    def setLayoutHeight(self, layoutH):
+        self.__layoutHeight = layoutH
 
     def getLayoutPoints(self):
         return self.__layoutPoints
@@ -266,27 +281,3 @@ class Annotation(object):
 
     def getLayoutHeight(self):
         return self.__layoutHeight
-
-
-    '''
-    def genConvexPoints(self, walls):
-
-        if len(walls) < 2:
-            print("wall numbers must be 2")
-            return
-
-        center, outers = walls[0].getConnectPoint(walls[1])
-        if center:
-            vec1 = tuple(np.array(walls[0].normal)*-0.5)
-            vec2 = tuple(np.array(walls[1].normal)*-0.5)
-            concave1 = GeoPoint(self.__mainScene, None, utils.vectorAdd(center.xyz,vec1))
-            concave2 = GeoPoint(self.__mainScene, None, utils.vectorAdd(center.xyz,vec2))
-            vec3 = utils.vectorAdd(vec1,vec2)
-            convex = GeoPoint(self.__mainScene, None, utils.vectorAdd(center.xyz,vec3))
-
-            idx = self.__layoutPoints.index(center)
-            self.delLayoutPoint(center)
-            self.__layoutPoints[idx:idx] = [concave1, convex ,concave2]
-            
-            self.genManhLayoutWalls()
-    '''

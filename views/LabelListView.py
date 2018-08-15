@@ -1,14 +1,9 @@
-
-import sys
-
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-
 import data
 import utils
 import configs
+
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QTreeWidget, QTreeWidgetItem, QAbstractItemView
 
 class LabelListView(QTreeWidget):
 
@@ -17,7 +12,7 @@ class LabelListView(QTreeWidget):
 
         self.__isAvailable = False
         self.__mainWindow = None
-        self.__mainScene = None
+        self.__scene = None
 
         self.setColumnCount(2)
         self.setHeaderLabels(['Name', 'ID'])
@@ -30,7 +25,7 @@ class LabelListView(QTreeWidget):
         
     def initByScene(self, scene):
         
-        self.__mainScene = scene
+        self.__scene = scene
         
         self.refreshList()
 
@@ -42,14 +37,14 @@ class LabelListView(QTreeWidget):
         self.clear()
         self.itemLinks = {}
 
-        points = self.__mainScene.label.getLayoutPoints()
+        points = self.__scene.label.getLayoutPoints()
         for point in points:
             item = QTreeWidgetItem(self)
             item.setText(0, 'GeoPoint')
             item.setText(1, str(point.id).zfill(5))
             self.itemLinks[point] = item
 
-        walls = self.__mainScene.label.getLayoutWalls()
+        walls = self.__scene.label.getLayoutWalls()
         for wall in walls:
             item = QTreeWidgetItem(self)
             item.setText(0, 'WallPlane')
@@ -62,7 +57,7 @@ class LabelListView(QTreeWidget):
         walls = []
         for obj, item in self.itemLinks.items():
             if item in self.selectedItems():
-                if obj in self.__mainScene.selectObjs:
+                if obj in self.__scene.selectObjs:
                     if type(obj) == data.GeoPoint:
                         gps.append(obj)
                     elif type(obj) == data.WallPlane:
@@ -73,27 +68,27 @@ class LabelListView(QTreeWidget):
 
         for obj, item in self.itemLinks.items():
             if item in self.selectedItems():
-                if obj not in self.__mainScene.selectObjs:
-                    self.__mainScene.selectObjs.append(obj)
+                if obj not in self.__scene.selectObjs:
+                    self.__scene.selectObjs.append(obj)
             else:
-                if obj in self.__mainScene.selectObjs:
-                    self.__mainScene.selectObjs.remove(obj)
+                if obj in self.__scene.selectObjs:
+                    self.__scene.selectObjs.remove(obj)
     
     def keyPressEvent(self, event):
 
         gps, walls = self.getSelectObjects()
         if(event.key() == Qt.Key_D):
             for point in gps:
-                self.__mainScene.label.delLayoutPoint(point)
-            self.__mainScene.label.delLayoutWalls(walls)
+                self.__scene.label.delLayoutPoint(point)
+            self.__scene.label.delLayoutWalls(walls)
             self.refreshList()
 
         if(event.key() == Qt.Key_M):
-            self.__mainScene.label.mergeLayoutWalls(walls)
+            self.__scene.label.mergeLayoutWalls(walls)
             self.refreshList()
         
         if(event.key() == Qt.Key_C):
-            self.__mainScene.label.genConvexPoints(walls)
+            self.__scene.label.genConvexPoints(walls)
             self.refreshList()
 
     

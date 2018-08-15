@@ -1,11 +1,9 @@
-
-import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .PanoView import PanoView
 from .MonoView import MonoView
 from .ResultView import ResultView
-from.LabelListView import LabelListView
+from .LabelListView import LabelListView
 
 class MainWindowUi(object):
     
@@ -61,8 +59,14 @@ class MainWindowUi(object):
         #Data operation list
         ####
         self.labelListView = LabelListView(self.centralWidget)
-        self.labelListView.setObjectName("LabelListView")
-        self.labelListView.setGeometry(QtCore.QRect(850, 450, 720, 400))
+        self.labelListView.setObjectName("ProgressView")
+        self.labelListView.setGeometry(QtCore.QRect(850, 450, 360, 400))
+
+
+        self.progressView = QtWidgets.QProgressBar(self.centralWidget)
+        self.progressView.setObjectName("LabelListView")
+        self.progressView.setGeometry(QtCore.QRect(1220, 450, 350, 400))
+
 
         mainWindow.setCentralWidget(self.centralWidget)
        

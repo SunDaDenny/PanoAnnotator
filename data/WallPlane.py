@@ -1,11 +1,7 @@
-
-import sys
 import random
-import math 
 
+import data
 import utils 
-from .Scene import *
-from .GeoPoint import *
 
 wpInstanceCount = 0
 
@@ -13,7 +9,7 @@ class WallPlane(object):
 
     def __init__(self, scene, gPoints):
 
-        self.__mainScene = scene
+        self.__scene = scene
 
         if(len((gPoints))<2):
             print("Two point at least")
@@ -27,6 +23,7 @@ class WallPlane(object):
 
         self.corners = []
         self.edges = []
+        self.bbox2d = ((0,0),(1,1))
 
         self.id = 0
 
@@ -52,6 +49,7 @@ class WallPlane(object):
 
         self.updateCorners()
         self.updateEdges()
+        self.updateBbox2d()
 
         self.normal = utils.pointsNormal(self.corners[0].xyz,self.corners[1].xyz,
                                         self.corners[3].xyz)
@@ -61,7 +59,7 @@ class WallPlane(object):
     def updateCorners(self):
 
         gps = self.gPoints
-        scene = self.__mainScene
+        scene = self.__scene
         cameraH = scene.label.getCameraHeight()
         cam2ceilH = scene.label.getCam2CeilHeight()
 
@@ -76,11 +74,18 @@ class WallPlane(object):
     
     def updateEdges(self):
 
-        scene = self.__mainScene
+        scene = self.__scene
         self.edges = [data.GeoEdge(scene, (self.corners[0], self.corners[1])),
                     data.GeoEdge(scene, (self.corners[1], self.corners[2])),
                     data.GeoEdge(scene, (self.corners[2], self.corners[3])),
                     data.GeoEdge(scene, (self.corners[3], self.corners[0]))]
+
+    def updateBbox2d(self):
+
+        coords = []
+        for c in [e.coords for e in self.edges]:
+            coords += c 
+        self.bbox2d = utils.imagePointsBox(coords)
 
     #manh only
     def checkRayHit(self, vec, orig=(0,0,0)):
@@ -105,23 +110,3 @@ class WallPlane(object):
                 return True, point
 
         return False, None
-
-    '''
-    def getConnectPoint(self, other):
-
-        center = None        
-        for p1 in self.gPoints:
-            for p2 in other.gPoints:
-                if p1 == p2:
-                    center = p1
-        if not center:
-            return None, None
-        
-        outers = []
-        gps = self.gPoints + other.gPoints
-        for point in gps:
-            if not point == center:
-                outers.append(point)
-
-        return center, outers
-    '''

@@ -1,12 +1,5 @@
-import sys
-import math
-
 import utils 
 import configs.Params as pm
-
-from .GeoPoint import *
-from .Scene import *
-from .Annotation import *
 
 geInstanceCount = 0
 
@@ -24,7 +17,7 @@ class GeoEdge(object):
         
         self.sample = []
         self.coords = []
-        
+
         self.id = 0
 
         self.init()
@@ -41,8 +34,7 @@ class GeoEdge(object):
 
         self.sample = utils.pointsSample(p1, p2, 15)
         self.coords = utils.points2coords(self.sample)
-
-
+    
     def checkCross(self):
         for i in range(len(self.coords)-1):
             isCross, l, r = utils.pointsCrossPano(self.sample[i],
@@ -50,5 +42,4 @@ class GeoEdge(object):
             if isCross:
                 return True, l, r
         return False, None, None
-        
     

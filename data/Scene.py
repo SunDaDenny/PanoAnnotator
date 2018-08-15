@@ -1,22 +1,15 @@
-
 import os
-import sys
-import numpy as np
-from PIL import Image as Image
 
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-
-import configs.Params as pm
-import estimator
 import data
 import utils
+import configs.Params as pm
+import estimator
 
 class Scene(object):
 
-    def __init__(self):
+    def __init__(self, mainWindows):
         
+        self.__mainWindows = mainWindows
         self.__isAvailable = False
         self.__mainDirPath = ""
 
@@ -50,14 +43,16 @@ class Scene(object):
         self.depthPred = depthPred
         self.__initDepth()
 
+        self.__checkIsAvailable()
+
+        return self.isAvailable()
+
+    def initScene2(self):
+
         self.__initLines()
         self.__initOmap()
         
         self.label.calcInitLayout()
-
-        self.__checkIsAvailable()
-
-        return self.isAvailable()
 
     def __initColor(self):
         self.__panoColor.initByImageFile(self.__panoColor.path)
@@ -111,6 +106,10 @@ class Scene(object):
     
     def isAvailable(self):
         return self.__isAvailable
+
+    #Mainwindows
+    def getMainWindows(self):
+        return self.__mainWindows
 
     #Pano Color
     def getPanoColorImage(self):

@@ -1,20 +1,15 @@
-
-import sys
 import numpy as np
-from PIL import Image as Image
-import math
-
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-
-from OpenGL.GL import *
-from OpenGL.GLU import *
 
 import data
 import utils
 import configs
+
+from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtWidgets import QOpenGLWidget
+from PyQt5.QtGui import QPixmap
+
+from OpenGL.GL import *
+from OpenGL.GLU import *
 
 class MonoView(QOpenGLWidget):
 
@@ -23,7 +18,7 @@ class MonoView(QOpenGLWidget):
 
         self.__isAvailable = False
         self.__mainWindow = None
-        self.__mainScene = None
+        self.__scene = None
 
         ### Rendering
         self.__panoTexture = 0
@@ -38,7 +33,7 @@ class MonoView(QOpenGLWidget):
     #Comstum Method
     #####
     def initByScene(self, scene):
-        self.__mainScene = scene
+        self.__scene = scene
         self.__panoTexture = self.genTextureByImage(scene.getPanoColorImage())
 
         self.__isAvailable = True
@@ -52,7 +47,7 @@ class MonoView(QOpenGLWidget):
 
         coords = utils.cameraPoint2pano(camPos, screenPos,
                                                         screenSize, self.__fov)
-        geoPoint = data.GeoPoint(self.__mainScene, coords)
+        geoPoint = data.GeoPoint(self.__scene, coords)
 
         return geoPoint
     
@@ -122,7 +117,7 @@ class MonoView(QOpenGLWidget):
 
             glPushMatrix()
             glRotated(-90, 1.0, 0.0, 0.0)
-            layoutWalls = self.__mainScene.label.getLayoutWalls()
+            layoutWalls = self.__scene.label.getLayoutWalls()
             for wall in layoutWalls:
                 self.drawWallPlane(wall)
             glPopMatrix()
@@ -173,7 +168,7 @@ class MonoView(QOpenGLWidget):
 
             if self.__isAvailable:
                 geoPoint = self.createGeoPoint(screenPos)
-                #self.__mainScene.label.addLayoutPoint(geoPoint)
+                #self.__scene.label.addLayoutPoint(geoPoint)
         
         else :
             self.__isDrag = False

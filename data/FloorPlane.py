@@ -1,15 +1,11 @@
-import sys
-
+import data
 import utils 
-from .Scene import *
-from .GeoPoint import *
-from .WallPlane import *
 
 class FloorPlane(object):
 
     def __init__(self, scene, isCeiling=False):
 
-        self.__mainScene = scene
+        self.__scene = scene
 
         self.__isCeiling = isCeiling
 
@@ -31,8 +27,8 @@ class FloorPlane(object):
     
     def updateGeometry(self):
 
-        cameraH = self.__mainScene.label.getCameraHeight()
-        cam2ceilH =  self.__mainScene.label.getCam2CeilHeight()
+        cameraH = self.__scene.label.getCameraHeight()
+        cam2ceilH =  self.__scene.label.getCam2CeilHeight()
         self.height = cam2ceilH if self.__isCeiling else -cameraH 
         self.planeEquation = self.normal + (-self.height,)
 
@@ -44,7 +40,7 @@ class FloorPlane(object):
         self.corners = []
         for gp in self.gPoints:
             xyz = (gp.xyz[0], self.height, gp.xyz[2])
-            corner = data.GeoPoint(self.__mainScene, None, xyz)
+            corner = data.GeoPoint(self.__scene, None, xyz)
             self.corners.append(corner)
     
     def updateEdges(self):
@@ -52,10 +48,9 @@ class FloorPlane(object):
         self.edges = []
         cnum = len(self.corners)
         for i in range(cnum):
-            edge = data.GeoEdge(self.__mainScene, 
+            edge = data.GeoEdge(self.__scene, 
                                 (self.corners[i], self.corners[(i+1)%cnum]))
             self.edges.append(edge)
-
 
     def isCeiling(self):
         return self.__isCeiling

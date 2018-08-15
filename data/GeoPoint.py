@@ -1,10 +1,4 @@
-
-import sys
-import math
-
 import utils 
-from .Scene import *
-from .Annotation import *
 
 gpInstanceCount = 0
 

@@ -1,10 +1,8 @@
-
 import os
-import sys
 import numpy as np
-from PIL import Image as Image
 
-from PyQt5.QtGui import *
+from PIL import Image as Image
+from PyQt5.QtGui import QPixmap
 
 class Resource(object):
 

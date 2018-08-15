@@ -1,12 +1,11 @@
-import sys
 import numpy as np
-import math
-
-from PyQt5.QtGui import QImage, QPixmap
-from skimage import morphology, filters, draw, transform
+import matplotlib.pyplot as plt
 
 import utils
 import configs.Params as pm
+
+from PyQt5.QtGui import QImage, QPixmap
+from skimage import morphology, filters, draw, transform
 
 def imageROI(data, lt, rb):
 
@@ -29,6 +28,15 @@ def imageRegionBox(center, steps, size):
     rb = checkImageBoundary(rb, size)
     return lt, rb
 
+def imagePointsBox(posList):
+
+    X = [pos[0] for pos in posList]
+    Y = [pos[1] for pos in posList]
+
+    lt = (min(X), min(Y))
+    rb = (max(X), max(Y))
+    return lt, rb
+
 def checkImageBoundary(pos, size):
         
     x = sorted([0, pos[0], size[0]])[1]
@@ -43,6 +51,11 @@ def data2Pixmap(data):
                     QImage.Format_RGB888)
     pixmap = QPixmap.fromImage(image)
     return pixmap
+
+def imageResize(data, size):
+
+    dataR = transform.resize(data, size, mode='constant')
+    return dataR
 
 def imageDilation(data, rad):
 
@@ -66,12 +79,11 @@ def imagesMSE(data1, data2, size):
     data1r = transform.resize(data1, size, mode='constant')
     data2r = transform.resize(data2, size, mode='constant')
 
-    mse = 0
-    for i in range(3):
-        err = np.sum((data1r[:,:,i] - data2r[:,:,i]) ** 2)
-        err /= float(size[0]*size[1])
-        mse += err
-        #print(err)
+    #data1r[data1r==0] = np.nan
+    #data2r[data2r==0] = np.nan
+    #mse = np.nanmean((data1r - data2r)**2)
+    mse = np.mean((data1r - data2r)**2)
+
     return mse
     
 
@@ -148,6 +160,8 @@ def axis2color(axis):
     return color
 
 
+def showImage(image):
 
-
-
+    plt.figure()
+    plt.imshow(image)
+    plt.show()

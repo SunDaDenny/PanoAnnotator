@@ -1,15 +1,13 @@
-
 import sys
 
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-
-import configs
 import data
+import configs
 import views
 import qdarkstyle
 import estimator
+
+from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QProgressDialog
+from PyQt5.QtCore import QCoreApplication
 
 class MainWindow(QMainWindow, views.MainWindowUi):
 
@@ -19,7 +17,7 @@ class MainWindow(QMainWindow, views.MainWindowUi):
 
         self.actionOpenFile.triggered.connect(self.openImageFile)
 
-        self.mainScene = data.Scene()
+        self.mainScene = data.Scene(self)
         self.depthPred = estimator.DepthPred()
 
         self.panoView.setMainWindow(self)
@@ -39,8 +37,10 @@ class MainWindow(QMainWindow, views.MainWindowUi):
         return ok
     
     def createNewScene(self, filePath):
-        scene = data.Scene()
+        scene = data.Scene(self)
         scene.initScene(filePath, self.depthPred)
+
+        
 
         if scene.isAvailable():
             self.panoView.initByScene(scene)
@@ -49,6 +49,8 @@ class MainWindow(QMainWindow, views.MainWindowUi):
             self.labelListView.initByScene(scene)
         else :
             print("Fail to create Scene")
+
+        scene.initScene2()
 
         return scene
 
@@ -59,6 +61,10 @@ class MainWindow(QMainWindow, views.MainWindowUi):
 
     def updateListView(self):
         self.labelListView.refreshList()
+
+    def updataProgressView(self, val):
+        self.progressView.setValue(val)
+        QCoreApplication.processEvents()
     
     def closeEvent(self, event):
         if self.depthPred:
