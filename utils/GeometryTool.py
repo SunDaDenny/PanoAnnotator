@@ -87,3 +87,9 @@ def planeEquation(normal, p):
     equation = normal + (d,)
     return equation
 
+def normal2color(normal):
+
+    vec = vectorMultiplyC(normal, -0.5)
+    color = vectorAdd(vec, (0.5,0.5,0.5))
+
+    return color

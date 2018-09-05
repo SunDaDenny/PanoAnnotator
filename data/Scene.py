@@ -25,10 +25,6 @@ class Scene(object):
         self.__panoLines = data.Resource('Lines')
         self.__panoOmap = data.Resource('Omap')
 
-        ### Layout Map
-        self.__layoutEdgeMap = data.Resource('Edge Map')
-        self.__layoutNormalMap = data.Resource('Normal Map')
-
         ### Annotation
         self.label = data.Annotation(self)
         self.selectObjs = []
@@ -43,15 +39,14 @@ class Scene(object):
         self.depthPred = depthPred
         self.__initDepth()
 
+        self.__initLines()
+        self.__initOmap()
+
         self.__checkIsAvailable()
 
         return self.isAvailable()
 
     def initScene2(self):
-
-        self.__initLines()
-        self.__initOmap()
-        
         self.label.calcInitLayout()
 
     def __initColor(self):
@@ -61,7 +56,7 @@ class Scene(object):
     def __initDepth(self):
         
         panoDepthPath = os.path.join(self.__mainDirPath, pm.depthFileDefaultName)
-        isExist = self.__panoDepth.initByImageFile(panoDepthPath)
+        isExist = self.__panoDepth.initByImageFileDepth(panoDepthPath)
         if isExist:
             depthData = self.__panoDepth.data.astype(float) / 4000 #For Matterport3d GT
             self.__panoDepth.data = depthData
@@ -111,7 +106,14 @@ class Scene(object):
     def getMainWindows(self):
         return self.__mainWindows
 
+    def getCurrentPath(self):
+        filePath = self.__panoColor.path
+        curPath = os.path.dirname(filePath) + '/'
+        return curPath
+
     #Pano Color
+    def getPanoColorPath(self):
+        return self.__panoColor.path
     def getPanoColorImage(self):
         return self.__panoColor.image
     def getPanoColorPixmap(self):
@@ -139,16 +141,6 @@ class Scene(object):
         return self.__panoPointCloud
     def getPanoPointCloud(self):
         return self.__panoPointCloud
-
-    def setLayoutEdgeMapPixmap(self, pixmap):
-        self.__layoutEdgeMap.pixmap = pixmap
-    def getLayoutEdgeMapPixmap(self):
-        return self.__layoutEdgeMap.pixmap
-    
-    def setLayoutNormalMapPixmap(self, pixmap):
-        self.__layoutNormalMap.pixmap = pixmap
-    def getLayoutNormalMapPixmap(self):
-        return self.__layoutNormalMap.pixmap
 
     def getSelectObjs(self, objType=None):
         objs = []

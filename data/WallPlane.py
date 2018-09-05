@@ -19,7 +19,8 @@ class WallPlane(object):
                       random.random())
 
         self.normal = (0, 0, 0)
-        self.planeEquation = (0, 0, 0, 0) 
+        self.planeEquation = (0, 0, 0, 0)
+        self.width = 0 
 
         self.corners = []
         self.edges = []
@@ -53,8 +54,9 @@ class WallPlane(object):
 
         self.normal = utils.pointsNormal(self.corners[0].xyz,self.corners[1].xyz,
                                         self.corners[3].xyz)
-
+        self.color = utils.normal2color(self.normal)
         self.planeEquation = utils.planeEquation(self.normal, self.corners[0].xyz)
+        self.width =  utils.pointsDistance(self.corners[0].xyz, self.corners[1].xyz)
 
     def updateCorners(self):
 
@@ -90,12 +92,15 @@ class WallPlane(object):
     #manh only
     def checkRayHit(self, vec, orig=(0,0,0)):
         
-        tmp = utils.vectorDot(self.normal, vec)
+        nv = utils.vectorDot(self.normal, vec)
+        d = self.planeEquation[3]
 
-        if tmp < 0.00001:
+        if nv == 0:
             return False, None
 
-        t = -self.planeEquation[3] / tmp
+        t = -d / nv
+        if t < 0:
+            return False, None
         point = utils.vectorMultiplyC(vec, t)
 
         cs = self.corners

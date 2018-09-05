@@ -138,6 +138,21 @@ def cameraPoint2pano(camPose, screenPos, screenSize, fov):
 
     return panoCoords
 
+def cameraCoords2Vector(camPose, coords, fov):
+
+    x_offset = -(coords[0] - 0.5) * fov[0]
+    y_offset = (coords[1] - 0.5) * fov[1]
+
+    hcam_rad = (camPose[0] + x_offset) / 180.0 * math.pi
+    vcam_rad = -(camPose[1] + y_offset) / 180.0 * math.pi
+
+    x = math.sin(hcam_rad)
+    z = math.cos(hcam_rad)
+    y = math.sin(vcam_rad)
+
+    return (x, y, z)
+
+
 def createPointCloud(color, depth):
     ### color:np.array (h, w)
     ### depth: np.array (h, w)

@@ -5,6 +5,7 @@ import configs
 import views
 import qdarkstyle
 import estimator
+import utils
 
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QProgressDialog
 from PyQt5.QtCore import QCoreApplication
@@ -16,6 +17,7 @@ class MainWindow(QMainWindow, views.MainWindowUi):
         self.setupUi(self)
 
         self.actionOpenFile.triggered.connect(self.openImageFile)
+        self.actionSaveFile.triggered.connect(self.saveSceneFile)
 
         self.mainScene = data.Scene(self)
         self.depthPred = estimator.DepthPred()
@@ -36,12 +38,16 @@ class MainWindow(QMainWindow, views.MainWindowUi):
 
         return ok
     
+    def saveSceneFile(self):
+        
+        curPath = self.mainScene.getCurrentPath()
+        utils.saveSceneAsMaps(curPath, self.mainScene)
+        utils.saveSceneAsJson(curPath + 'label.json', self.mainScene)
+
     def createNewScene(self, filePath):
         scene = data.Scene(self)
         scene.initScene(filePath, self.depthPred)
-
-        
-
+        scene.initScene2()
         if scene.isAvailable():
             self.panoView.initByScene(scene)
             self.monoView.initByScene(scene)
@@ -50,9 +56,12 @@ class MainWindow(QMainWindow, views.MainWindowUi):
         else :
             print("Fail to create Scene")
 
-        scene.initScene2()
+        #scene.initScene2()
 
         return scene
+
+    def moveMonoCamera(self, coords):
+        self.monoView.moveCamera(coords)
 
     def updateViews(self):
         self.panoView.update()
@@ -66,6 +75,9 @@ class MainWindow(QMainWindow, views.MainWindowUi):
         self.progressView.setValue(val)
         QCoreApplication.processEvents()
     
+    def refleshProcessEvent(self):
+        QCoreApplication.processEvents()
+    
     def closeEvent(self, event):
         if self.depthPred:
             self.depthPred.sess.close()
@@ -74,7 +86,7 @@ class MainWindow(QMainWindow, views.MainWindowUi):
     def keyPressEvent(self, event):
         print("main")
         key = event.key()
-        print(key)
+        #print(key)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

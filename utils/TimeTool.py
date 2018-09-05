@@ -1,25 +1,25 @@
 import time
 
-timeStart = 0
-timeSave = 0
+timeStartRun = 0
+timeStartFPS = 0
 
 def getFPS():
 
-    global timeSave
-    durning = time.clock() - timeSave
+    global timeStartFPS
+    durning = time.clock() - timeStartFPS
     if not durning == 0:
-        fps = 1.0 / (time.clock() - timeSave)
+        fps = 1.0 / (time.clock() - timeStartFPS)
     else:
         fps = 0.0
-    timeSave = time.clock()
+    timeStartFPS = time.clock()
     return fps
 
 def resetTimer():
-    global timeStart
-    timeStart = 0
+    global timeStartRun
+    timeStartRun = time.clock()
 
 def getRunTime():
-    global timeStart
-    print(time.clock() - timeStart)
-    timeStart = 0
+    global timeStartRun
+    print(time.clock() - timeStartRun)
+    timeStartRun = time.clock()
 

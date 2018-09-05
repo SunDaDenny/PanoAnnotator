@@ -11,6 +11,7 @@ class FloorPlane(object):
 
         self.gPoints = scene.label.getLayoutPoints()
         self.walls = scene.label.getLayoutWalls()
+        self.color = (0,0,0)
         
         self.normal = (0, -1, 0) if isCeiling else (0, 1, 0)
         self.height = 0
@@ -18,6 +19,7 @@ class FloorPlane(object):
 
         self.corners = []
         self.edges = []
+        self.bbox2d = ((0,0),(1,1))
 
         self.init()
 
@@ -31,9 +33,11 @@ class FloorPlane(object):
         cam2ceilH =  self.__scene.label.getCam2CeilHeight()
         self.height = cam2ceilH if self.__isCeiling else -cameraH 
         self.planeEquation = self.normal + (-self.height,)
+        self.color = utils.normal2color(self.normal)
 
         self.updateCorners()
         self.updateEdges()
+        self.updateBbox2d()
         
     def updateCorners(self):
 
@@ -51,6 +55,13 @@ class FloorPlane(object):
             edge = data.GeoEdge(self.__scene, 
                                 (self.corners[i], self.corners[(i+1)%cnum]))
             self.edges.append(edge)
+    
+    def updateBbox2d(self):
+
+        coords = []
+        for c in [e.coords for e in self.edges]:
+            coords += c 
+        self.bbox2d = utils.imagePointsBox(coords)
 
     def isCeiling(self):
         return self.__isCeiling

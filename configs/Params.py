@@ -2,12 +2,18 @@
 class Params(object):
 
     #MainWindows
-    fileDefaultOpenPath = "D:/Dataset/Test/all/"
-    depthFileDefaultName = "pano_depth.png"
-    linesFileDefaultName = "pano_edge_07.png"
-    omapFileDefaultName = "pano_omap_07.png"
+    fileDefaultOpenPath = "D:/Dataset/iStaging/0001~0050"
+    depthFileDefaultName = "pano_depth_none.png"
+    linesFileDefaultName = "pano_edge.png"
+    omapFileDefaultName = "pano_omap.png"
+
+
+    #Input
+    keyDict = {'none':0, 'ctrl':1, 'shift':2, 'alt':3}
 
     #Annotation
+    layoutMapSize = [512, 1024, 3]
+
     defaultCameraHeight = 1.8
     defaultLayoutHeight = 3.2
 

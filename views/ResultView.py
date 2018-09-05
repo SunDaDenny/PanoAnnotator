@@ -25,7 +25,7 @@ class ResultView(QOpenGLWidget):
 
         self.isPointCloudEnable = False
         self.isLayoutWallEnable = True
-        self.isLayoutPointEnable = True
+        self.isLayoutPointEnable = False
 
     #####
     #Comstum Method
@@ -33,9 +33,9 @@ class ResultView(QOpenGLWidget):
     def initByScene(self, scene):
         self.__mainScene = scene
 
-        pointCloud = utils.createPointCloud(self.__mainScene.getPanoColorData(),
-                                                self.__mainScene.getPanoDepthData() )
-        self.__mainScene.setPanoPointCloud(pointCloud)
+        #pointCloud = utils.createPointCloud(self.__mainScene.getPanoColorData(),
+        #                                        self.__mainScene.getPanoDepthData() )
+        #self.__mainScene.setPanoPointCloud(pointCloud)
 
         self.__isAvailable = True
         self.update()
@@ -60,6 +60,7 @@ class ResultView(QOpenGLWidget):
     def initializeGL(self):
 
         glClearColor(0.0, 0.0, 0.0, 1.0)
+        #glClearColor(1.0, 1.0, 1.0, 1.0)
         glClearDepth(1.0)
 
         glShadeModel(GL_SMOOTH)

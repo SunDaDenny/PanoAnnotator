@@ -1,11 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 import utils
 import configs.Params as pm
 
 from PyQt5.QtGui import QImage, QPixmap
 from skimage import morphology, filters, draw, transform
+from PIL import Image
 
 def imageROI(data, lt, rb):
 
@@ -74,15 +76,17 @@ def imageGaussianBlur(data, sigma):
         ans[:,:,i] = filters.gaussian(channel, sigma)
     return ans
 
-def imagesMSE(data1, data2, size):
+def imagesMSE(data1, data2):
 
-    data1r = transform.resize(data1, size, mode='constant')
-    data2r = transform.resize(data2, size, mode='constant')
+    if not data1.shape == data2.shape:
+        print('size error')
+    #data1r = transform.resize(data1, size, mode='constant')
+    #data2r = transform.resize(data2, size, mode='constant')
 
     #data1r[data1r==0] = np.nan
     #data2r[data2r==0] = np.nan
     #mse = np.nanmean((data1r - data2r)**2)
-    mse = np.mean((data1r - data2r)**2)
+    mse = np.mean((data1 - data2)**2)
 
     return mse
     
@@ -99,11 +103,14 @@ def imageDrawPolygon(data, points, color):
     rr, cc = draw.polygon(Y,X)
     draw.set_color(data, [rr,cc], list(color))
 
-def imageDrawWallFace(data, wall):
+def imageDrawWallFace(data, wall, ctype=0):
 
     size = (data.shape[1], data.shape[0])
     axis = utils.vectorAlignAxis(wall.normal)
-    color = axis2color(axis)
+    if ctype == 0:
+        color = axis2color(axis)
+    else:
+        color = wall.color
 
     isCrossUp, ul, ur = wall.edges[0].checkCross()
     isCrossDown, dl, dr = wall.edges[2].checkCross()
@@ -129,12 +136,15 @@ def imageDrawWallFace(data, wall):
         utils.imageDrawPolygon(data, polygon1, color)
         utils.imageDrawPolygon(data, polygon2, color)
 
-def imageDrawWallEdge(data, wall):
+def imageDrawWallEdge(data, wall, ctype=0):
 
     size = (data.shape[1], data.shape[0])
     for edge in wall.edges:
         axis = utils.vectorAlignAxis(edge.vector)
-        color = axis2color(axis)
+        if ctype == 0:
+            color = axis2color(axis)
+        else:
+            color = (1, 1, 1)
         for i in range(len(edge.coords)-1):
             isCross, l, r = utils.pointsCrossPano(edge.sample[i],
                                                 edge.sample[i+1])
@@ -159,9 +169,13 @@ def axis2color(axis):
         color = (0,1,0)
     return color
 
-
 def showImage(image):
 
     plt.figure()
     plt.imshow(image)
     plt.show()
+
+def saveImage(image, path):
+
+    im = Image.fromarray(np.uint8(image*255))
+    im.save(path)

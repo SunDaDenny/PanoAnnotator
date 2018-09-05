@@ -32,7 +32,7 @@ class GeoEdge(object):
         p2 = self.gPoints[1].xyz
         self.vector = utils.pointsDirection(p1, p2)
 
-        self.sample = utils.pointsSample(p1, p2, 15)
+        self.sample = utils.pointsSample(p1, p2, 30)
         self.coords = utils.points2coords(self.sample)
     
     def checkCross(self):

@@ -26,5 +26,5 @@ def setProgressVal(scene):
     global progCount
     
     mainWindows = scene.getMainWindows()
-    val = float(progCount/progMax) * 100
+    val = float(progCount)/progMax * 100
     mainWindows.updataProgressView(val)
