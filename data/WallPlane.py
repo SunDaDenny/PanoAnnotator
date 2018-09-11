@@ -91,18 +91,11 @@ class WallPlane(object):
 
     #manh only
     def checkRayHit(self, vec, orig=(0,0,0)):
+
+        point = utils.vectorPlaneHit(vec, self.planeEquation)
+        if point is None:
+            return False, None
         
-        nv = utils.vectorDot(self.normal, vec)
-        d = self.planeEquation[3]
-
-        if nv == 0:
-            return False, None
-
-        t = -d / nv
-        if t < 0:
-            return False, None
-        point = utils.vectorMultiplyC(vec, t)
-
         cs = self.corners
         if cs[2].xyz[1] <= point[1] <= cs[0].xyz[1]:
 

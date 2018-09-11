@@ -87,6 +87,20 @@ def planeEquation(normal, p):
     equation = normal + (d,)
     return equation
 
+def vectorPlaneHit(vec, plane):
+
+    normal = (plane[0], plane[1], plane[2])
+    nv = vectorDot(normal, vec)
+    d = plane[3]
+
+    if nv == 0:
+        return None
+    t = -d / nv
+    if t < 0:
+        return None
+    point = vectorMultiplyC(vec, t)
+    return point
+
 def normal2color(normal):
 
     vec = vectorMultiplyC(normal, -0.5)

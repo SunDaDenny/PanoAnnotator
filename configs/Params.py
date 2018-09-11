@@ -2,11 +2,14 @@
 class Params(object):
 
     #MainWindows
-    fileDefaultOpenPath = "D:/Dataset/iStaging/0001~0050"
+    fileDefaultOpenPath = "D:\Dataset\Test\io"
+
+    labelFileDefaultName = "label.json"
+
+    colorFileDefaultName = "pano_color.png"
     depthFileDefaultName = "pano_depth_none.png"
     linesFileDefaultName = "pano_edge.png"
     omapFileDefaultName = "pano_omap.png"
-
 
     #Input
     keyDict = {'none':0, 'ctrl':1, 'shift':2, 'alt':3}

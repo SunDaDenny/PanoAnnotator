@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 import data
 import utils
@@ -45,9 +46,17 @@ class Scene(object):
         self.__checkIsAvailable()
 
         return self.isAvailable()
+    
+    def initEmptyScene(self):
 
-    def initScene2(self):
+        self.__panoColor.data = np.zeros([100,100,3])
+        self.__panoDepth.data = np.zeros([100,100])
+
+    def initLabel(self):
         self.label.calcInitLayout()
+
+    def loadLabel(self, path):
+        utils.loadLabelByJson(path, self)
 
     def __initColor(self):
         self.__panoColor.initByImageFile(self.__panoColor.path)

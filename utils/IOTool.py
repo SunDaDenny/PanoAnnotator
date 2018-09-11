@@ -1,26 +1,29 @@
 import json
 import io
 import utils
+import data
 
 try:
     to_unicode = unicode
 except NameError:
     to_unicode = str
 
-
 def saveSceneAsMaps(path, scene):
 
-    edgeMap = scene.label.genLayoutEdgeMap()
+    edgeMap = utils.genLayoutEdgeMap(scene)
     #utils.showImage(edgeMap)
     utils.saveImage(edgeMap, path + 'label_edge.png')
     
-    oMap = scene.label.genLayoutOMap()
+    oMap = utils.genLayoutOMap(scene)
     #utils.showImage(oMap)
-    #utils.saveImage(oMap, path + 'omap.png')
+    utils.saveImage(oMap, path + 'label_omap.png')
 
-    normalMap = scene.label.genLayoutNormalMap()
+    normalMap = utils.genLayoutNormalMap(scene)
     #utils.showImage(normalMap)
     utils.saveImage(normalMap, path + 'label_normal.png')
+
+    depthMap = utils.genLayoutDepthMap(scene)
+    utils.saveImage(depthMap, path + 'label_depth.png')
 
 
 def saveSceneAsJson(path, scene):
@@ -30,7 +33,7 @@ def saveSceneAsJson(path, scene):
     for i, point in enumerate(points):
         pointDict = {
             'coords':point.coords,
-            'depth':float(point.depth),
+            #'depth':float(point.depth),
             'xyz':list(point.xyz),
             'id':point.id
         }
@@ -65,3 +68,22 @@ def saveSceneAsJson(path, scene):
                         indent=4, sort_keys=True,
                          ensure_ascii=False)
         outfile.write(to_unicode(str_))
+
+def loadLabelByJson(path, scene):
+
+    with open(path) as f:
+        jdata = json.load(f)
+
+    scene.label.setCameraHeight(jdata['cameraHeight'])
+    scene.label.setLayoutHeight(jdata['layoutHeight'])
+
+    pointsDict = jdata['layoutPoints']
+    pointsList = pointsDict['points']
+
+    gPoints = []
+    for point in pointsList:
+        xyz = tuple(point['xyz'])
+        gPoint = data.GeoPoint(scene, None, xyz)
+        gPoints.append(gPoint)
+
+    scene.label.setLayoutPoints(gPoints)

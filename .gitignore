@@ -1,6 +1,6 @@
 
 *.pyc
 
-estimator/depth/models/trained/
+estimator/depth/models/trained/*
 
-preprocess/matlab/
+preprocess/matlab/*

@@ -90,7 +90,6 @@ def imagesMSE(data1, data2):
 
     return mse
     
-
 def imageDrawLine(data, p1, p2, color):
 
     rr, cc = draw.line(p1[1],p1[0],p2[1],p2[0])
@@ -103,71 +102,22 @@ def imageDrawPolygon(data, points, color):
     rr, cc = draw.polygon(Y,X)
     draw.set_color(data, [rr,cc], list(color))
 
-def imageDrawWallFace(data, wall, ctype=0):
+def imageDrawWallDepth(data, polygon, wall):
 
     size = (data.shape[1], data.shape[0])
-    axis = utils.vectorAlignAxis(wall.normal)
-    if ctype == 0:
-        color = axis2color(axis)
-    else:
-        color = wall.color
+    polyx = np.array([p[0] for p in polygon])
+    polyy = np.array([p[1] for p in polygon])
 
-    isCrossUp, ul, ur = wall.edges[0].checkCross()
-    isCrossDown, dl, dr = wall.edges[2].checkCross()
+    posy, posx = draw.polygon(polyy, polyx)
 
-    polygon = []
-    for edge in wall.edges:
-        for point in edge.coords:
-            polygon.append(utils.coords2pos(point, size))
+    for i in range(len(posy)):
+        coords = utils.pos2coords((posx[i],posy[i]), size)
+        vec =  utils.coords2xyz(coords, 1)
 
-    if not (isCrossUp or isCrossDown):
-        utils.imageDrawPolygon(data, polygon, color)
-    else:
-        sampleNum = len(wall.edges[0].sample)
-        iur = wall.edges[0].sample.index(ur)
-        iul = iur + 1
-        idr = wall.edges[2].sample.index(dr) + sampleNum*2
-        idl = idr - 1
-        uh = int((polygon[iur][1] + polygon[iul][1])/2)
-        dh = int((polygon[idr][1] + polygon[idl][1])/2)
-
-        polygon1 = polygon[:iur]+[(size[0],uh),(size[0],dh)]+polygon[idr:]
-        polygon2 = [(0,uh)]+polygon[iul:idl]+[(0,dh)]
-        utils.imageDrawPolygon(data, polygon1, color)
-        utils.imageDrawPolygon(data, polygon2, color)
-
-def imageDrawWallEdge(data, wall, ctype=0):
-
-    size = (data.shape[1], data.shape[0])
-    for edge in wall.edges:
-        axis = utils.vectorAlignAxis(edge.vector)
-        if ctype == 0:
-            color = axis2color(axis)
-        else:
-            color = (1, 1, 1)
-        for i in range(len(edge.coords)-1):
-            isCross, l, r = utils.pointsCrossPano(edge.sample[i],
-                                                edge.sample[i+1])
-            if not isCross:
-                pos1 = utils.coords2pos(edge.coords[i], size)
-                pos2 = utils.coords2pos(edge.coords[i+1], size)
-                utils.imageDrawLine(data, pos1, pos2, color)
-            else:
-                lpos = utils.coords2pos(utils.xyz2coords(l), size)
-                rpos = utils.coords2pos(utils.xyz2coords(r), size)
-                ch = int((lpos[1] + rpos[1])/2)
-                utils.imageDrawLine(data, lpos, (0,ch), color)
-                utils.imageDrawLine(data, rpos, (size[0],ch), color)
-
-def axis2color(axis):
-
-    if axis == 0:
-        color = (0,0,1)
-    elif axis == 1:
-        color = (1,0,0)
-    elif axis == 2:
-        color = (0,1,0)
-    return color
+        point = utils.vectorPlaneHit(vec, wall.planeEquation)
+        depth = 0 if point is None else utils.pointsDistance((0,0,0), point)
+        color = (depth/10, depth/10, depth/10)
+        draw.set_color(data, [posy[i],posx[i]], list(color))
 
 def showImage(image):
 

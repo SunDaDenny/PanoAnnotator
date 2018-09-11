@@ -19,9 +19,14 @@ class PushPred(object):
 
         size = (self.__size[0], self.__size[1])
         oMap = self.__scene.getPanoOmapData()
-        self.__oMapR = utils.imageResize(oMap, size)
+        if oMap is not None:
+            self.__oMapR = utils.imageResize(oMap, size)
         linesMap = self.__scene.getPanoLinesData()
-        self.__linesMapR = utils.imageResize(linesMap, size)
+        if linesMap is not None:
+            self.__linesMapR = utils.imageResize(linesMap, size)
+        
+        if (self.__linesMapR is not None) and (self.__oMapR is not None):
+            self.__isAvailable = True
 
     #####
     # GoldenSection search method
@@ -29,6 +34,9 @@ class PushPred(object):
     def optimizeWallGS(self, wall, val):
 
         self.init()
+        if not self.__isAvailable:
+            print('PushPred not available')
+            return
         utils.resetProgress(self.__scene, 2)
 
         step = abs(wall.planeEquation[3])
@@ -41,6 +49,9 @@ class PushPred(object):
     def optimizeLayoutGS(self):
 
         self.init()
+        if not self.__isAvailable:
+            print('PushPred not available')
+            return
         utils.resetTimer()
         
         label = self.__scene.label
@@ -138,33 +149,17 @@ class PushPred(object):
 
         def calcMapError(self):
             #self.__scene.getMainWindows().refleshProcessEvent() #1.5sec
-
-            def genEdgeMap(self):
-                edgeMap = np.zeros(self.__size)
-                for wall in  self.__scene.label.getLayoutWalls():
-                    utils.imageDrawWallEdge(edgeMap, wall)
-                edgeMapDilation = utils.imageDilation(edgeMap, 1)
-                edgeMapBlur = utils.imageGaussianBlur(edgeMapDilation, 2)
-                return edgeMapBlur
             
-            def genNormalMap(self):
-                normalMap = np.zeros(self.__size)
-                normalMap[:,:,0] = 1
-                for wall in  self.__scene.label.getLayoutWalls():
-                    utils.imageDrawWallFace(normalMap, wall)
-                return normalMap
-            
-            size = (self.__size[0], self.__size[1])
-            
-            normalMap = genNormalMap(self)
-            
+            normalMap = utils.genLayoutNormalMap(self.__scene, self.__size)
             omapMSE = utils.imagesMSE(normalMap, self.__oMapR)
 
-            edgeMap = genEdgeMap(self)
+            edgeMap = utils.genLayoutEdgeMap(self.__scene, self.__size)
+            edgeMap = utils.imageDilation(edgeMap, 1)
+            edgeMap = utils.imageGaussianBlur(edgeMap, 2)
             lineMSE = utils.imagesMSE(edgeMap, self.__linesMapR)
             #print('MSE lines:{0:.3f}  normal:{1:.3f}'.format(lineMSE,omapMSE))
 
-            mix = omapMSE  + lineMSE * 10
+            mix = omapMSE  + lineMSE * 20
             return mix
 
         if(type(obj) == data.WallPlane):

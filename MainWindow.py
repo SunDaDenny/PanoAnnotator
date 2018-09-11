@@ -1,7 +1,8 @@
 import sys
+import os
 
 import data
-import configs
+import configs.Params as pm
 import views
 import qdarkstyle
 import estimator
@@ -28,26 +29,32 @@ class MainWindow(QMainWindow, views.MainWindowUi):
         self.labelListView.setMainWindow(self)
 
     def openImageFile(self):
-        filePath, ok = QFileDialog.getOpenFileName(self, "open", configs.Params.fileDefaultOpenPath,
+        filePath, ok = QFileDialog.getOpenFileName(self, "open", pm.fileDefaultOpenPath,
                                                   "Images (*.png *.jpg)")
-
         if ok:
             self.mainScene = self.createNewScene(filePath)
         else:
             print('open file error')
-
         return ok
     
     def saveSceneFile(self):
         
         curPath = self.mainScene.getCurrentPath()
-        utils.saveSceneAsMaps(curPath, self.mainScene)
-        utils.saveSceneAsJson(curPath + 'label.json', self.mainScene)
+        savePath = curPath + pm.labelFileDefaultName
+        #utils.saveSceneAsMaps(savePath, self.mainScene)
+        utils.saveSceneAsJson(savePath, self.mainScene)
 
     def createNewScene(self, filePath):
         scene = data.Scene(self)
         scene.initScene(filePath, self.depthPred)
-        scene.initScene2()
+        
+        curPath = scene.getCurrentPath()
+        labelPath = curPath + pm.labelFileDefaultName
+        if os.path.exists(labelPath):
+            scene.loadLabel(labelPath)
+        else:
+            scene.initLabel()
+        
         if scene.isAvailable():
             self.panoView.initByScene(scene)
             self.monoView.initByScene(scene)
@@ -55,7 +62,6 @@ class MainWindow(QMainWindow, views.MainWindowUi):
             self.labelListView.initByScene(scene)
         else :
             print("Fail to create Scene")
-
         #scene.initScene2()
 
         return scene

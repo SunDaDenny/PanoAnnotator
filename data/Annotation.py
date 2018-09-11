@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import math
 
 import data
 import utils
@@ -167,37 +168,6 @@ class Annotation(object):
         self.__layoutFloor.updateGeometry()
         self.__layoutCeiling.updateGeometry()
 
-    def genLayoutEdgeMap(self):
-
-        size = pm.layoutMapSize
-        edgeMap = np.zeros(size)
-        for wall in self.__layoutWalls:
-            utils.imageDrawWallEdge(edgeMap, wall, 1)
-        #edgeMap = utils.imageDilation(edgeMap, 1)
-        #edgeMap = utils.imageGaussianBlur(edgeMap, 2)
-        return edgeMap
-
-    def genLayoutOMap(self):
-
-        size = pm.layoutMapSize
-        oMap = np.zeros(size)
-        oMap[:,:,0] = 1
-        for wall in self.__layoutWalls:
-            if wall.planeEquation[3] < 0:
-                utils.imageDrawWallFace(oMap, wall, 0)
-        return oMap
-
-    def genLayoutNormalMap(self):
-
-        size = pm.layoutMapSize
-        normalMap = np.zeros(size)
-        normalMap[:int(size[0]/2),:] = self.__layoutCeiling.color 
-        normalMap[int(size[0]/2)+1:,:] = self.__layoutFloor.color
-        for wall in self.__layoutWalls:
-            if wall.planeEquation[3] < 0:
-                utils.imageDrawWallFace(normalMap, wall, 1)
-        return normalMap
-
     #####
     #Getter & Setter
     #####
@@ -209,6 +179,10 @@ class Annotation(object):
 
     def getLayoutPoints(self):
         return self.__layoutPoints
+    def setLayoutPoints(self, points):
+        self.__layoutPoints = points
+        self.genLayoutWallsByPoints(self.__layoutPoints)
+        self.updateLayoutGeometry()
 
     def getLayoutWalls(self):
         return self.__layoutWalls

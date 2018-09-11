@@ -31,8 +31,8 @@ class FloorPlane(object):
 
         cameraH = self.__scene.label.getCameraHeight()
         cam2ceilH =  self.__scene.label.getCam2CeilHeight()
-        self.height = cam2ceilH if self.__isCeiling else -cameraH 
-        self.planeEquation = self.normal + (-self.height,)
+        self.height = cam2ceilH if self.__isCeiling else cameraH 
+        self.planeEquation = self.normal + (self.height,)
         self.color = utils.normal2color(self.normal)
 
         self.updateCorners()
@@ -43,7 +43,10 @@ class FloorPlane(object):
 
         self.corners = []
         for gp in self.gPoints:
-            xyz = (gp.xyz[0], self.height, gp.xyz[2])
+            if self.__isCeiling:
+                xyz = (gp.xyz[0], self.height, gp.xyz[2])
+            else:
+                xyz = (gp.xyz[0], -self.height, gp.xyz[2])
             corner = data.GeoPoint(self.__scene, None, xyz)
             self.corners.append(corner)
     
