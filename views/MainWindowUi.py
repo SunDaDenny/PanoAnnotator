@@ -24,9 +24,15 @@ class MainWindowUi(object):
 
         self.menuOpen = QtWidgets.QMenu(self.menubar)
         self.menuOpen.setObjectName("menuOpen")
-        self.actionOpenFile = QtWidgets.QAction(mainWindow)
-        self.actionOpenFile.setObjectName("actionOpenFile")
-        self.menuOpen.addAction(self.actionOpenFile)
+
+        self.actionOpenImage = QtWidgets.QAction(mainWindow)
+        self.actionOpenImage.setObjectName("actionOpenImage")
+        self.menuOpen.addAction(self.actionOpenImage)
+
+        self.actionOpenJson = QtWidgets.QAction(mainWindow)
+        self.actionOpenJson.setObjectName("actionOpenJson")
+        self.menuOpen.addAction(self.actionOpenJson)
+
         self.menubar.addAction(self.menuOpen.menuAction())
 
         self.menuSave = QtWidgets.QMenu(self.menubar)
@@ -73,7 +79,6 @@ class MainWindowUi(object):
         self.progressView.setObjectName("LabelListView")
         self.progressView.setGeometry(QtCore.QRect(850, 810, 600, 40))
 
-
         mainWindow.setCentralWidget(self.centralWidget)
        
         self.retranslateUi(mainWindow)
@@ -83,6 +88,7 @@ class MainWindowUi(object):
         _translate = QtCore.QCoreApplication.translate
         mainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.menuOpen.setTitle(_translate("MainWindow", "Open"))
-        self.actionOpenFile.setText(_translate("MainWindow", "Open File"))
+        self.actionOpenImage.setText(_translate("MainWindow", "Open Image"))
+        self.actionOpenJson.setText(_translate("MainWindow", "Open Json"))
         self.menuSave.setTitle(_translate("MainWindow", "Save"))
-        self.actionSaveFile.setText(_translate("MainWindow", "Save File"))
+        self.actionSaveFile.setText(_translate("MainWindow", "Save as Json"))

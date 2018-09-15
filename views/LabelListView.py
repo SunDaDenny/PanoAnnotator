@@ -37,32 +37,34 @@ class LabelListView(QTreeWidget):
         self.clear()
         self.itemLinks = {}
 
-        points = self.__scene.label.getLayoutPoints()
-        for point in points:
+        def genItem(obj, name):
             item = QTreeWidgetItem(self)
-            item.setText(0, 'GeoPoint')
-            item.setText(1, str(point.id).zfill(5))
-            self.itemLinks[point] = item
+            item.setText(0, name)
+            item.setText(1, str(obj.id).zfill(5))
+            self.itemLinks[obj] = item
+
+        floor = self.__scene.label.getLayoutFloor()
+        genItem(floor, 'Floor')
+        ceiling = self.__scene.label.getLayoutCeiling()
+        genItem(ceiling, 'Ceiling')
 
         walls = self.__scene.label.getLayoutWalls()
         for wall in walls:
-            item = QTreeWidgetItem(self)
-            item.setText(0, 'WallPlane')
-            item.setText(1, str(wall.id).zfill(5))
-            self.itemLinks[wall] = item
-    
-    def getSelectObjects(self):
+            genItem(wall, 'Wall')
+
+        obj2ds = self.__scene.label.getLayoutObject2d()
+        for obj2d in obj2ds:
+            genItem(obj2d, 'Object')
         
-        gps = []
-        walls = []
+    def getSelectObjects(self, objType):
+        
+        objs = []
         for obj, item in self.itemLinks.items():
             if item in self.selectedItems():
                 if obj in self.__scene.selectObjs:
-                    if type(obj) == data.GeoPoint:
-                        gps.append(obj)
-                    elif type(obj) == data.WallPlane:
-                        walls.append(obj)
-        return gps, walls
+                    if type(obj) == objType:
+                        objs.append(obj)
+        return objs
 
     def onTreeClicked(self, QModelIndex):
 
@@ -76,21 +78,19 @@ class LabelListView(QTreeWidget):
     
     def keyPressEvent(self, event):
 
-        gps, walls = self.getSelectObjects()
+        walls = self.getSelectObjects(data.WallPlane)
+        obj2ds = self.getSelectObjects(data.Object2D)
+
         if(event.key() == Qt.Key_D):
-            for point in gps:
-                self.__scene.label.delLayoutPoint(point)
-            self.__scene.label.delLayoutWalls(walls)
-            self.refreshList()
+            if walls or obj2ds:
+                self.__scene.label.delLayoutObject2ds(obj2ds)
+                self.__scene.label.delLayoutWalls(walls)
+                self.refreshList()
 
         if(event.key() == Qt.Key_M):
             self.__scene.label.mergeLayoutWalls(walls)
             self.refreshList()
         
-        if(event.key() == Qt.Key_C):
-            self.__scene.label.genConvexPoints(walls)
-            self.refreshList()
-
     
     def enterEvent(self, event):
         self.setFocus(True)

@@ -17,7 +17,9 @@ class MainWindow(QMainWindow, views.MainWindowUi):
         super(MainWindow, self).__init__()
         self.setupUi(self)
 
-        self.actionOpenFile.triggered.connect(self.openImageFile)
+        self.actionOpenImage.triggered.connect(self.openImageFile)
+        self.actionOpenJson.triggered.connect(self.openJsonFile)
+
         self.actionSaveFile.triggered.connect(self.saveSceneFile)
 
         self.mainScene = data.Scene(self)
@@ -33,6 +35,20 @@ class MainWindow(QMainWindow, views.MainWindowUi):
                                                   "Images (*.png *.jpg)")
         if ok:
             self.mainScene = self.createNewScene(filePath)
+            self.mainScene.initLabel()
+            self.initViewsByScene(self.mainScene)
+        else:
+            print('open file error')
+        return ok
+
+    def openJsonFile(self):
+        filePath, ok = QFileDialog.getOpenFileName(self, "open", pm.fileDefaultOpenPath,
+                                                  "Json (*.json)")
+        if ok:
+            imagePath = os.path.join(os.path.dirname(filePath), pm.colorFileDefaultName)
+            self.mainScene = self.createNewScene(imagePath)
+            self.mainScene.loadLabel(filePath)
+            self.initViewsByScene(self.mainScene)
         else:
             print('open file error')
         return ok
@@ -47,24 +63,15 @@ class MainWindow(QMainWindow, views.MainWindowUi):
     def createNewScene(self, filePath):
         scene = data.Scene(self)
         scene.initScene(filePath, self.depthPred)
-        
-        curPath = scene.getCurrentPath()
-        labelPath = curPath + pm.labelFileDefaultName
-        if os.path.exists(labelPath):
-            scene.loadLabel(labelPath)
-        else:
-            scene.initLabel()
-        
-        if scene.isAvailable():
-            self.panoView.initByScene(scene)
-            self.monoView.initByScene(scene)
-            self.resultView.initByScene(scene)
-            self.labelListView.initByScene(scene)
-        else :
-            print("Fail to create Scene")
-        #scene.initScene2()
 
         return scene
+
+    def initViewsByScene(self, scene):
+
+        self.panoView.initByScene(scene)
+        self.monoView.initByScene(scene)
+        self.resultView.initByScene(scene)
+        self.labelListView.initByScene(scene)
 
     def moveMonoCamera(self, coords):
         self.monoView.moveCamera(coords)

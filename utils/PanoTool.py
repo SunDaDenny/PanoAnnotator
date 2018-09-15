@@ -79,6 +79,18 @@ def coords2pos(coords, size):
             int(coords[1] * (size[1]-1)))
     return pos
 
+def xyz2pos(xyz, size):
+
+    coords = xyz2coords(xyz)
+    pos = coords2pos(coords, size)
+    return pos
+
+def pos2xyz(pos, size, N):
+
+    coords = pos2coords(pos, size)
+    xyz = coords2xyz(coords, N)
+    return xyz
+
 def posTranspose(pos):
 
     ans = (pos[1], pos[0])
@@ -102,41 +114,6 @@ def pointsCrossPano(p1, p2):
             return False, None, None
     else:
         return False, None, None
-
-def cameraPoint2pano(camPose, screenPos, screenSize, fov):
-
-    p_theta = (screenPos[0] - screenSize[0] / 2.0) / screenSize[0] * fov[0] / 180.0 * math.pi
-    p_phi = -(screenPos[1] - screenSize[1] / 2.0) / screenSize[1] * fov[1] / 180.0 * math.pi
-
-    p_x = math.cos(p_phi) * math.cos(p_theta)
-    p_y = math.cos(p_phi) * math.sin(p_theta)
-    p_z = math.sin(p_phi)
-
-    p0 = np.array([p_x, p_y, p_z], np.float)
-
-    hcam_rad = camPose[0] / 180.0 * math.pi
-    vcam_rad = camPose[1] / 180.0 * math.pi
-    
-    rot_y = np.array([[math.cos(vcam_rad), 0, math.sin(vcam_rad)],
-                    [0, 1, 0],
-                    [-math.sin(vcam_rad), 0, math.cos(vcam_rad)]], np.float)
-    rot_z = np.array([[math.cos(hcam_rad), -math.sin(hcam_rad), 0],
-                    [math.sin(hcam_rad), math.cos(hcam_rad), 0],
-                    [0, 0, 1]], np.float)
-    
-    p1 = rot_y.dot(p0)
-    p2 = rot_z.dot(p1)
-
-    theta = math.atan2(p2[1], p2[0])
-    phi = math.asin(p2[2])
-
-    lon = theta / math.pi * 180.0
-    lat = phi / math.pi * 180.0
-    #print("lon : {0} , lat : {1}".format(lon, lat))
-
-    panoCoords = ((lon + 180) / 360, 1.0 - (lat + 90) / 180 )
-
-    return panoCoords
 
 def cameraCoords2Vector(camPose, coords, fov):
 
@@ -185,7 +162,42 @@ def createPointCloud(color, depth):
     
     return pointCloud
 
+'''
+def cameraPoint2pano(camPose, screenPos, screenSize, fov):
 
+    p_theta = (screenPos[0] - screenSize[0] / 2.0) / screenSize[0] * fov[0] / 180.0 * math.pi
+    p_phi = -(screenPos[1] - screenSize[1] / 2.0) / screenSize[1] * fov[1] / 180.0 * math.pi
+
+    p_x = math.cos(p_phi) * math.cos(p_theta)
+    p_y = math.cos(p_phi) * math.sin(p_theta)
+    p_z = math.sin(p_phi)
+
+    p0 = np.array([p_x, p_y, p_z], np.float)
+
+    hcam_rad = camPose[0] / 180.0 * math.pi
+    vcam_rad = camPose[1] / 180.0 * math.pi
+    
+    rot_y = np.array([[math.cos(vcam_rad), 0, math.sin(vcam_rad)],
+                    [0, 1, 0],
+                    [-math.sin(vcam_rad), 0, math.cos(vcam_rad)]], np.float)
+    rot_z = np.array([[math.cos(hcam_rad), -math.sin(hcam_rad), 0],
+                    [math.sin(hcam_rad), math.cos(hcam_rad), 0],
+                    [0, 0, 1]], np.float)
+    
+    p1 = rot_y.dot(p0)
+    p2 = rot_z.dot(p1)
+
+    theta = math.atan2(p2[1], p2[0])
+    phi = math.asin(p2[2])
+
+    lon = theta / math.pi * 180.0
+    lat = phi / math.pi * 180.0
+    #print("lon : {0} , lat : {1}".format(lon, lat))
+
+    panoCoords = ((lon + 180) / 360, 1.0 - (lat + 90) / 180 )
+
+    return panoCoords
+'''
 
             
 

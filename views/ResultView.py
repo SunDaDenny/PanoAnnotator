@@ -19,9 +19,9 @@ class ResultView(QOpenGLWidget):
         self.__mainScene = None
 
         ### trackball
+        self.__lastPos = QPoint()
         self.camRot = [0.0, 90.0, 0.0]
         self.camPos = [0.0, 0.0, 12.0]
-        self.__lastPos = QPoint()
 
         self.isPointCloudEnable = False
         self.isLayoutWallEnable = True
@@ -43,15 +43,21 @@ class ResultView(QOpenGLWidget):
     def drawWallPlane(self, wallPlane):
         
         glBegin(GL_QUADS)
-
         rgb = wallPlane.color
-        #glColor3f(rgb[0], rgb[1], rgb[2])
         glColor4f(rgb[0], rgb[1], rgb[2], 0.75)
         #glNormal3f(0.0, 0.0, 1.0)
-
         for p in wallPlane.corners:
             glVertex3f(p.xyz[0], p.xyz[1], p.xyz[2])
+        glEnd()
 
+    def drawEdges(self, obj):
+        
+        glLineWidth(3)
+        glBegin(GL_LINE_STRIP)
+        for p in obj.corners:
+            glVertex3f(p.xyz[0], p.xyz[1], p.xyz[2])
+        first = obj.corners[0]
+        glVertex3f(first.xyz[0], first.xyz[1], first.xyz[2])
         glEnd()
 
     #####
@@ -94,6 +100,7 @@ class ResultView(QOpenGLWidget):
             pointCloud = self.__mainScene.getPanoPointCloud()
             layoutPoints = self.__mainScene.label.getLayoutPoints()
             layoutWalls = self.__mainScene.label.getLayoutWalls()
+            layoutObject2ds = self.__mainScene.label.getLayoutObject2d()
             
             if pointCloud and self.isPointCloudEnable:
                 glPointSize(3)
@@ -107,7 +114,7 @@ class ResultView(QOpenGLWidget):
             if self.isLayoutPointEnable:
                 glPointSize(10)
                 glBegin(GL_POINTS)          
-                rgb = pm.resultPointColor[0]
+                rgb = (0.0, 0.5, 0.5)
                 glColor3f(rgb[0], rgb[1], rgb[2])
                 for point in layoutPoints:
                     glVertex3f(point.xyz[0], point.xyz[1], point.xyz[2])
@@ -117,6 +124,9 @@ class ResultView(QOpenGLWidget):
                 for wall in layoutWalls:
                     self.drawWallPlane(wall)
 
+            glColor3f(1, 1, 1)
+            for obj2d in layoutObject2ds:
+                self.drawEdges(obj2d)
 
         glPopMatrix()
 
@@ -133,7 +143,6 @@ class ResultView(QOpenGLWidget):
     def mousePressEvent(self, event):
         self.setFocus(True)
         self.__lastPos = event.pos()
-
         
     def mouseMoveEvent(self, event):
         #print("point : {0} {1}".format(event.pos().x(), event.pos().y()))
@@ -161,14 +170,11 @@ class ResultView(QOpenGLWidget):
 
         if (event.key() == Qt.Key_1):
             self.isPointCloudEnable = not self.isPointCloudEnable
-
         if (event.key() == Qt.Key_2):
             self.isLayoutWallEnable = not self.isLayoutWallEnable
-
         if (event.key() == Qt.Key_3):
             self.isLayoutPointEnable = not self.isLayoutPointEnable
 
-        
         self.update()
 
     def enterEvent(self, event):

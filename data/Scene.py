@@ -154,7 +154,7 @@ class Scene(object):
     def getSelectObjs(self, objType=None):
         objs = []
         typeDict = {'GeoPoint':data.GeoPoint, 'WallPlane':data.WallPlane, 
-                    'FloorPlane':data.FloorPlane}
+                    'FloorPlane':data.FloorPlane, 'Object2D':data.Object2D}
         if objType:
             for obj in self.selectObjs:
                 if type(obj) == typeDict[objType]:

@@ -17,6 +17,7 @@ class Annotation(object):
 
         self.__layoutPoints = []
         self.__layoutWalls = []
+        self.__layoutObjects2d = []
 
         self.__layoutFloor = None
         self.__layoutCeiling = None
@@ -29,7 +30,7 @@ class Annotation(object):
     #####
     def genLayoutWallsByPoints(self, points):
 
-        self.__layoutWalls = []
+        self.clearLayoutWalls()
         self.__scene.selectObjs = []
 
         pnum = len(points)
@@ -45,19 +46,19 @@ class Annotation(object):
 
         self.__layoutPoints = []
 
-        manhxyz = utils.alignManhattan(points)     
+        manhxyz = utils.alignManhattan(points)
         for xyz in manhxyz:
             gp = data.GeoPoint(self.__scene, None, xyz)
             self.__layoutPoints.append(gp)
 
     def genManhLayoutWalls(self):
         
-        self.__layoutWalls = [] 
+        self.clearLayoutWalls()
 
         self.calcManhLayoutPoints(self.__layoutPoints)
         self.genLayoutWallsByPoints(self.__layoutPoints)
     
-    def genSplitPoints(self,wall, point):
+    def genSplitPoints(self,  wall, point):
 
         p1 = data.GeoPoint(self.__scene, None, point)
         p2 = data.GeoPoint(self.__scene, None, point)
@@ -73,6 +74,14 @@ class Annotation(object):
             
         self.genLayoutWallsByPoints(self.__layoutPoints)
 
+    def genObject2d(self, points, wall):
+
+        p1 = data.GeoPoint(self.__scene, None, points[0])
+        p2 = data.GeoPoint(self.__scene, None, points[1])
+
+        obj = data.Object2D(self.__scene, [p1, p2], wall)
+        self.__layoutObjects2d.append(obj)        
+
     #####
     #Layout operation
     #####
@@ -82,6 +91,7 @@ class Annotation(object):
             for point in wall.gPoints:
                 if point in self.__layoutPoints:
                     self.__layoutPoints.remove(point)
+
         self.genManhLayoutWalls()
 
     def mergeLayoutWalls(self, walls):
@@ -93,7 +103,17 @@ class Annotation(object):
                     tmp.append(point)
                 elif point in self.__layoutPoints:
                     self.__layoutPoints.remove(point)
+
         self.genManhLayoutWalls()
+    
+    def delLayoutObject2ds(self, obj2ds):
+
+        for obj in obj2ds:
+            if obj in self.__scene.selectObjs:
+                self.__scene.selectObjs.remove(obj)
+            if obj in obj.attach.attached: 
+                obj.attach.attached.remove(obj)
+            self.__layoutObjects2d.remove(obj)
 
     def mergeTrivialWalls(self, val):
         
@@ -105,11 +125,18 @@ class Annotation(object):
                     self.delLayoutWalls([wall])
                     break
                 restart = False
+    
+    def clearLayoutWalls(self):
+
+        #self.delLayoutObject2ds(self.__layoutObjects2d)
+        self.__layoutObjects2d = []
+        self.__layoutWalls = []
 
     def cleanLayout(self):
 
         self.__layoutPoints = []
         self.__layoutWalls = []
+        self.__layoutObjects2d = []
         
         self.__layoutFloor = None
         self.__layoutCeiling = None
@@ -156,10 +183,11 @@ class Annotation(object):
         self.calcManhLayoutPoints(samplePoints)
         self.genLayoutWallsByPoints(self.__layoutPoints)
 
-        self.mergeTrivialWalls(0.5)
+        #self.mergeTrivialWalls(0.5)
+        self.mergeTrivialWalls(1.0)
         #self.pushPred.optimizeLayoutBF()
         self.pushPred.optimizeLayoutGS()
-        self.mergeTrivialWalls(0.5)
+        #self.mergeTrivialWalls(0.5)
 
     def updateLayoutGeometry(self):
 
@@ -193,6 +221,12 @@ class Annotation(object):
     def getLayoutCeiling(self):
         return self.__layoutCeiling
 
+    def getLayoutObject2d(self):
+        return self.__layoutObjects2d
+    def setLayoutObject2d(self, obj2ds):
+        self.__layoutObjects2d = obj2ds
+        self.updateLayoutGeometry()
+
     def getCameraHeight(self):
         return self.__cameraHeight
 
@@ -201,36 +235,3 @@ class Annotation(object):
 
     def getLayoutHeight(self):
         return self.__layoutHeight
-
-#####
-#backup
-#####
-    '''
-    def addLayoutPoint(self, point):
-
-        if type(point) is data.GeoPoint:
-            for i, gp in enumerate(self.__layoutPoints):
-                if gp.coords[0] > point.coords[0]:
-                    self.__layoutPoints.insert(i, point)
-                    self.genLayoutWallsByPoints(self.__layoutPoints)
-                    return
-            self.__layoutPoints.append(point)
-            self.genLayoutWallsByPoints(self.__layoutPoints)
-        else :
-            print("Type error")
-
-    def delLayoutPoint(self, point):
-
-        if point in self.__layoutPoints:
-            self.__layoutPoints.remove(point)
-            self.genLayoutWallsByPoints(self.__layoutPoints)
-
-    def delLastLayoutPoints(self):
-        
-        if self.__layoutPoints:
-            tmp = self.__layoutPoints[:]
-            tmp.sort(key=lambda x:x.id)
-            delPoint = tmp.pop()
-            self.__layoutPoints.remove(delPoint)
-            self.genLayoutWallsByPoints(self.__layoutPoints)
-    '''

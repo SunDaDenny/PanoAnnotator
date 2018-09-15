@@ -56,12 +56,28 @@ def saveSceneAsJson(path, scene):
     wallsDict = {'num':len(walls),
                  'walls':wallsList}
 
+    obj2ds = scene.label.getLayoutObject2d()
+    obj2dsList = []
+    for i, obj2d in enumerate(obj2ds):
+        obj2dDict = {
+            'wallIdx':walls.index(obj2d.attach),
+            'points':[gp.xyz for gp in obj2d.gPoints],
+            'coords':[list(obj2d.localBbox2d[0]),
+                      list(obj2d.localBbox2d[1])],
+            'width': obj2d.width,
+            'id' : obj2d.id,
+        }
+        obj2dsList.append(obj2dDict)
+    obj2dsDict = {'num':len(obj2ds),
+                 'obj2ds':obj2dsList}
+
     data = {'name': scene.getPanoColorPath(),
             'layoutHeight': scene.label.getLayoutHeight(),
             'cameraHeight': scene.label.getCameraHeight(),
             'cameraCeilingHeight': scene.label.getCam2CeilHeight(),
             'layoutPoints':pointsDict,
-            'layoutWalls':wallsDict}
+            'layoutWalls':wallsDict,
+            'layoutObj2ds':obj2dsDict}
 
     with io.open(path, 'w', encoding='utf8') as outfile:
         str_ = json.dumps(data,
@@ -87,3 +103,20 @@ def loadLabelByJson(path, scene):
         gPoints.append(gPoint)
 
     scene.label.setLayoutPoints(gPoints)
+
+    walls = scene.label.getLayoutWalls()
+
+    if 'layoutObj2ds' in jdata:
+
+        obj2dsDict = jdata['layoutObj2ds']
+        obj2dsList = obj2dsDict['obj2ds']
+
+        object2ds = []
+        for obj2d in obj2dsList:
+            gp1 = data.GeoPoint(scene, None, tuple(obj2d['points'][0]))
+            gp2 = data.GeoPoint(scene, None, tuple(obj2d['points'][1]))
+            wall = walls[int(obj2d['wallIdx'])]
+            object2d = data.Object2D(scene, [gp1, gp2], wall)
+            object2ds.append(object2d)
+        
+        scene.label.setLayoutObject2d(object2ds)

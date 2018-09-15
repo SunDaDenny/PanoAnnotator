@@ -24,13 +24,20 @@ class MonoView(QOpenGLWidget):
         self.__panoTexture = 0
 
         ### trackball
-        self.__camRot = [0.0, 0.0, 0.0]
-        self.__keyPress = pm.keyDict['none']
         self.__lastPos = QPoint()
+        self.__camRot = [0.0, 0.0, 0.0]
+        
+        self.__keyPress = pm.keyDict['none']
+        self.__dragPoints = []
+        
         self.__fov = pm.monoViewFov
 
         self.__hitInfo = [] #(obj, hit point)
         self.__hitSelect = 0
+        self.__hitWalls = [] #(wall, hit point)
+
+        self.setMouseTracking(True)
+        self.setCursor(Qt.BlankCursor)
 
     #####
     #Comstum Method
@@ -44,51 +51,28 @@ class MonoView(QOpenGLWidget):
         self.__isAvailable = True
         self.update()
 
-    '''    
-    def createGeoPoint(self, screenPos):
-        
-        camPos = (-self.__camRot[0], -self.__camRot[1])
-        screenSize = (self.width(), self.height())
-
-        coords = utils.cameraPoint2pano(camPos, screenPos,
-                                        screenSize, self.__fov)
-        geoPoint = data.GeoPoint(self.__scene, coords)
-
-        return geoPoint
-    '''
-
-    def selectByCoords(self, coords):
-        
-        vec =  utils.coords2xyz(coords, 1)
-
-        self.__hitInfo = []
-        for wall in self.__scene.label.getLayoutWalls():
-            isHit, point = wall.checkRayHit(vec)
-            if isHit:
-                self.__hitInfo.append((wall, point))
-
-        if self.__hitInfo:
-            self.__hitInfo.sort(key=lambda x:abs(x[0].planeEquation[3]), reverse=True)
-            self.selectObject(self.__hitInfo[0][0], self.__hitInfo[0][1])
-            self.__hitSelect = 0
-        elif vec[1]<=0:
-            self.selectObject(self.__scene.label.getLayoutFloor(), None)
-        else:
-            self.selectObject(self.__scene.label.getLayoutCeiling(), None)
-
     def selectByVector(self, vec):
 
-        self.__hitInfo = []
+        #select object2d first
+        for obj2d in self.__scene.label.getLayoutObject2d():
+            isHit, point = obj2d.checkRayHit(vec)
+            if isHit:
+                self.selectObject(obj2d, point)
+                return
+
+        #select walls and save all hit wall into hitinfo
+        self.__hitWalls = []
         for wall in self.__scene.label.getLayoutWalls():
             isHit, point = wall.checkRayHit(vec)
             if isHit:
-                self.__hitInfo.append((wall, point))
+                self.__hitWalls.append((wall, point))
+        if self.__hitWalls:
+            wall, point = self.__hitWalls[0]
+            self.selectObject(wall, point)
+            return
 
-        if self.__hitInfo:
-            self.__hitInfo.sort(key=lambda x:abs(x[0].planeEquation[3]), reverse=True)
-            self.selectObject(self.__hitInfo[0][0], self.__hitInfo[0][1])
-            self.__hitSelect = 0
-        elif vec[1]<=0:
+        #select floor and ceiling
+        if vec[1]<=0:
             self.selectObject(self.__scene.label.getLayoutFloor(), None)
         else:
             self.selectObject(self.__scene.label.getLayoutCeiling(), None)
@@ -105,12 +89,14 @@ class MonoView(QOpenGLWidget):
             select.append(obj)
         elif self.__keyPress == pm.keyDict['shift']:
             self.multiSelect(obj)
-
         elif self.__keyPress == pm.keyDict['alt'] and point:
-            self.__scene.label.genSplitPoints(obj, point)
+            if type(obj) is data.WallPlane:
+                self.__scene.label.genSplitPoints(obj, point)
 
     def multiSelect(self, obj):
 
+        if type(obj) is not data.WallPlane:
+            return
         select = self.__scene.selectObjs
         walls = self.__scene.label.getLayoutWalls()
         selectWalls = self.__scene.getSelectObjs('WallPlane')
@@ -132,6 +118,18 @@ class MonoView(QOpenGLWidget):
         else:
             select.append(obj)
 
+    def selectNextHit(self):
+
+        hits = self.__hitWalls
+        select = self.__scene.selectObjs
+        if not hits:
+            return
+        obj, point = hits[0]
+        if obj in select:
+            select.remove(obj)
+            hits.insert(0, hits.pop())
+            select.append(hits[0][0])
+
     def drawEdges(self, obj):
         
         glLineWidth(3)
@@ -141,24 +139,6 @@ class MonoView(QOpenGLWidget):
         first = obj.corners[0]
         glVertex3f(first.xyz[0], first.xyz[1], first.xyz[2])
         glEnd()
-        
-    def drawWallPlane(self, wall):
-        
-        '''
-        glBegin(GL_QUADS)
-        rgb = wallPlane.color
-        glColor4f(rgb[0], rgb[1], rgb[2], 0.5)
-        for p in wallPlane.corners:
-            glVertex3f(p.xyz[0], p.xyz[1], p.xyz[2])
-        glEnd()
-        '''
-        
-        glLineWidth(3)
-        glBegin(GL_LINE_STRIP)
-        for p in wall.corners:
-            glVertex3f(p.xyz[0], p.xyz[1], p.xyz[2])
-        glEnd()
-
 
     #####
     #Override
@@ -176,8 +156,8 @@ class MonoView(QOpenGLWidget):
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         glEnable(GL_LINE_SMOOTH)
-
         #glPolygonMode( GL_FRONT_AND_BACK, GL_LINE )
+        glEnable(GL_PROGRAM_POINT_SIZE)
 
     def paintGL(self):
 
@@ -211,8 +191,7 @@ class MonoView(QOpenGLWidget):
 
             glColor3f(1 ,1 ,0)
             for obj in self.__scene.selectObjs:
-                if type(obj) == data.WallPlane or type(obj) == data.FloorPlane:
-                    self.drawEdges(obj)
+                self.drawEdges(obj)
             
             glColor3f(0 ,0 ,1)
             walls = self.__scene.label.getLayoutWalls()
@@ -225,6 +204,27 @@ class MonoView(QOpenGLWidget):
                 self.drawEdges(floor)
             if ceiling is not None:
                 self.drawEdges(ceiling)
+            
+            glColor3f(0 ,1 ,1)
+            obj2ds = self.__scene.label.getLayoutObject2d()
+            for obj2d in obj2ds:
+                self.drawEdges(obj2d)
+
+            dps = self.__dragPoints  
+            glColor3f(1 ,0 ,0)
+            if len(dps)==2:
+                glLineWidth(2)
+                glBegin(GL_LINE_STRIP)       
+                glVertex3f(dps[0][0], dps[0][1], dps[0][2])
+                glVertex3f(dps[1][0], dps[1][1], dps[1][2])
+                glEnd()
+            
+            vec = self.getCamCoordsVector(self.__lastPos)
+            glColor3f(1 ,0 ,0)
+            glPointSize(5)
+            glBegin(GL_POINTS)
+            glVertex3f(vec[0], vec[1], vec[2])
+            glEnd()
 
             glPopMatrix()
 
@@ -251,72 +251,83 @@ class MonoView(QOpenGLWidget):
         self.__camRot[0] = -(coords[0] - 0.5) * 360
         self.__camRot[1] = (coords[1] - 0.5) * 180
 
+    def getCamCoordsVector(self, pos):
+        
+        camPos = (self.__camRot[0] + 180, self.__camRot[1])
+        coords = (pos.x()/self.width(), pos.y()/self.height())
+        vec = utils.cameraCoords2Vector(camPos, coords, self.__fov)
+        return vec
+
     def mousePressEvent(self, event):
         self.__lastPos = event.pos()
 
-        #camPos = (-self.__camRot[0], -self.__camRot[1])
-        #screenPos = (event.pos().x(),event.pos().y())
-        #screenSize = (self.width(), self.height())
-        #coords = utils.cameraPoint2pano(camPos, screenPos,
-        #                                screenSize, self.__fov)
-        
-        camPos = (self.__camRot[0] + 180, self.__camRot[1])
-        coords = (event.x()/self.width(), event.y()/self.height())
-        vec = utils.cameraCoords2Vector(camPos, coords, self.__fov)
+        if not self.__isAvailable:
+            return
 
-        if self.__isAvailable:
-            if event.button() == Qt.LeftButton:
-                #self.selectByCoords(coords)
-                self.selectByVector(vec)
-                self.__mainWindow.updateListView()
+        vec = self.getCamCoordsVector(event)    
+        if event.button() == Qt.LeftButton:
+            self.selectByVector(vec)
+            self.__mainWindow.updateListView()
         
         self.__mainWindow.updateViews()
 
     def mouseMoveEvent(self, event):
-        #print("point : {0} {1}".format(event.pos().x(), event.pos().y()))
 
+        if not self.__isAvailable:
+            return
         dx = event.x() - self.__lastPos.x()
         dy = event.y() - self.__lastPos.y()
+
+        if event.buttons() & Qt.LeftButton:
+            vec = self.getCamCoordsVector(event)
+            if self.__keyPress == pm.keyDict['object'] and self.__hitWalls:
+                wall, point1 = self.__hitWalls[0]
+                isHit, point2 = wall.checkRayHit(vec)
+                if isHit:
+                    self.__dragPoints = [point1, point2]
 
         if event.buttons() & Qt.RightButton:
             self.__camRot[0] += 0.5 * dx
             self.__camRot[1] -= 0.5 * dy
 
-        xf, yf = self.cameraPoseFix(self.__camRot)
-        self.__camRot[0] = xf
-        self.__camRot[1] = yf
+            xf, yf = self.cameraPoseFix(self.__camRot)
+            self.__camRot[0] = xf
+            self.__camRot[1] = yf
 
         self.__lastPos = event.pos()
         self.__mainWindow.updateViews()
 
     def mouseReleaseEvent(self, event):
-        self.__hitInfo = []
+
+        if not self.__isAvailable:
+            return
+
+        if len(self.__dragPoints)==2:
+            self.__scene.label.genObject2d(self.__dragPoints, 
+                                            self.__hitWalls[0][0])
+        self.__hitWalls = []
+        self.__dragPoints = []
 
     def wheelEvent(self,event):
 
         dy = float(event.angleDelta().y())
 
-        if self.__hitInfo:
-            hitWall = self.__hitInfo[self.__hitSelect][0]
-            if(hitWall in self.__scene.selectObjs):
-                self.__scene.selectObjs.remove(hitWall)
-                self.__hitSelect = (self.__hitSelect+1)%len(self.__hitInfo)
-                self.__scene.selectObjs.append(self.__hitInfo[self.__hitSelect][0])
-
         for wall in self.__scene.getSelectObjs('WallPlane'):
             if self.__keyPress == pm.keyDict['shift']:
-                self.__scene.label.moveWallByPred(wall, dy/3000)
+                self.__scene.label.moveWallByPred(wall, dy)
             else:
-                self.__scene.label.moveWallByNormal(wall, dy/3000)
+                d = wall.planeEquation[3]
+                move = dy / 5000 * -d
+                self.__scene.label.moveWallByNormal(wall, move)
 
         for floorplane in self.__scene.getSelectObjs('FloorPlane'):
             if not floorplane.isCeiling():
-                self.__scene.label.moveFloor(-float(dy)/1000)
+                self.__scene.label.moveFloor(-float(dy)/3000)
             else:
-                self.__scene.label.moveCeiling(float(dy)/1000)
+                self.__scene.label.moveCeiling(float(dy)/3000)
 
-        self.__mainWindow.updateViews()       
-    
+        self.__mainWindow.updateViews()
+
     def keyPressEvent(self, event):
         
         if(event.key() == Qt.Key_Control):
@@ -325,13 +336,27 @@ class MonoView(QOpenGLWidget):
             self.__keyPress = pm.keyDict['shift']
         elif(event.key() == Qt.Key_Alt):
             self.__keyPress = pm.keyDict['alt']
+        elif(event.key() == Qt.Key_Z):
+            self.__keyPress = pm.keyDict['object']
+        
+        elif(event.key() == Qt.Key_X):
+            self.selectNextHit()
 
-        if(event.key() == Qt.Key_D):
+        elif(event.key() == Qt.Key_R):
+            self.__scene.label.calcInitLayout()
+
+        elif(event.key() == Qt.Key_D):
+            obj2ds = self.__scene.getSelectObjs('Object2D')
+            self.__scene.label.delLayoutObject2ds(obj2ds)
             walls = self.__scene.getSelectObjs('WallPlane')
-            self.__scene.label.delLayoutWalls(walls)
-        elif(event.key() == Qt.Key_M):
+            if walls:
+                self.__scene.label.delLayoutWalls(walls)
+
+        elif(event.key() == Qt.Key_Space):
             walls = self.__scene.getSelectObjs('WallPlane')
             self.__scene.label.mergeLayoutWalls(walls)
+
+        self.__mainWindow.updateListView()
 
     def keyReleaseEvent(self, event):
         self.__keyPress = pm.keyDict['none']

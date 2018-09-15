@@ -37,12 +37,12 @@ class PushPred(object):
         if not self.__isAvailable:
             print('PushPred not available')
             return
-        utils.resetProgress(self.__scene, 2)
+        utils.resetProgress(self.__scene, 3)
 
         step = abs(wall.planeEquation[3])
         step = step if val >= 0 else -step
-        a = min(step/20, step)
-        b = max(step/20, step)
+        a = min(step/10, step)
+        b = max(step/10, step)
         moveVal = self.goldenSectionSearch(wall, a, b, 3)
         self.__scene.label.moveWallByNormal(wall, moveVal)
 
@@ -56,7 +56,7 @@ class PushPred(object):
         
         label = self.__scene.label
         walls = label.getLayoutWalls()
-        utils.resetProgress(self.__scene, 6 + len(walls) * 3)
+        utils.resetProgress(self.__scene, 6)
 
         floor = label.getLayoutFloor()
         moveVal = self.goldenSectionSearch(floor, 0, 1.0, 3)
@@ -66,11 +66,10 @@ class PushPred(object):
         moveVal = self.goldenSectionSearch(floor, 0, 1.0, 3)
         label.moveCeiling(moveVal)
 
-        for wall in walls:
-            step = abs(wall.planeEquation[3])
-            #moveVal = self.goldenSectionSearch(wall, -step, step , 10)
-            moveVal = self.goldenSectionSearch(wall, -step, step , 3)
-            label.moveWallByNormal(wall, moveVal)
+        #for wall in walls:
+        #    step = abs(wall.planeEquation[3])
+        #    moveVal = self.goldenSectionSearch(wall, -step, step , 3)
+        #    label.moveWallByNormal(wall, moveVal)
 
         #utils.getRunTime()
 
@@ -166,7 +165,7 @@ class PushPred(object):
             self.__scene.label.moveWallByNormal(obj, val)
             err = calcMapError(self)
             self.__scene.label.moveWallByNormal(obj, -val)
-        
+
         elif(type(obj) == data.FloorPlane):
             if(obj.isCeiling()):
                 self.__scene.label.moveCeiling(val)

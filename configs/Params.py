@@ -2,7 +2,7 @@
 class Params(object):
 
     #MainWindows
-    fileDefaultOpenPath = "D:\Dataset\Test\io"
+    fileDefaultOpenPath = "D:/Dataset/iStaging"
 
     labelFileDefaultName = "label.json"
 
@@ -12,7 +12,7 @@ class Params(object):
     omapFileDefaultName = "pano_omap.png"
 
     #Input
-    keyDict = {'none':0, 'ctrl':1, 'shift':2, 'alt':3}
+    keyDict = {'none':0, 'ctrl':1, 'shift':2, 'alt':3, 'object':4}
 
     #Annotation
     layoutMapSize = [512, 1024, 3]
@@ -24,12 +24,7 @@ class Params(object):
     layoutHeightSampleStep = 0.01 
 
     #MonoView
-    monoViewFov = (-1, 60)
-
-    #ResultView
-    resultPointColor = [(0.0, 0.5, 0.5),
-                        (0.5, 0.5, 0.0),
-                        (0.5, 0.0, 0.5)]
+    monoViewFov = (-1, 90)
 
     #PanoTool
     pcSampleStride = 30

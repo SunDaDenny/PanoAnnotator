@@ -52,8 +52,11 @@ def pointsDistance(p1, p2):
 def pointsDirection(p1, p2):
 
     vec = [p2[0]-p1[0], p2[1]-p1[1], p2[2]-p1[2]]
-    scalar = np.linalg.norm(vec)
-    ans = (vec[0]/scalar, vec[1]/scalar, vec[2]/scalar)
+    scalar = float(np.linalg.norm(vec))
+    if not scalar==0:
+        ans = (vec[0]/scalar, vec[1]/scalar, vec[2]/scalar)
+    else:
+        ans = (vec[0], vec[1], vec[2])
     return ans
 
 def pointsDirectionPow(p1, p2, pow_):

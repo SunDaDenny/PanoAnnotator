@@ -1,6 +1,8 @@
 import data
 import utils 
 
+fpInstanceCount = 0
+
 class FloorPlane(object):
 
     def __init__(self, scene, isCeiling=False):
@@ -21,7 +23,13 @@ class FloorPlane(object):
         self.edges = []
         self.bbox2d = ((0,0),(1,1))
 
+        self.id = 0
+
         self.init()
+
+        global fpInstanceCount
+        fpInstanceCount += 1
+        self.id = fpInstanceCount
 
     def init(self):
     
