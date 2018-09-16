@@ -1,5 +1,7 @@
 import json
 import io
+
+import configs.Params as pm
 import utils
 import data
 
@@ -10,20 +12,20 @@ except NameError:
 
 def saveSceneAsMaps(path, scene):
 
-    edgeMap = utils.genLayoutEdgeMap(scene)
+    edgeMap = utils.genLayoutEdgeMap(scene, pm.layoutMapSize)
     #utils.showImage(edgeMap)
-    utils.saveImage(edgeMap, path + 'label_edge.png')
+    utils.saveImage(edgeMap, path + '/label_edge.png')
     
-    oMap = utils.genLayoutOMap(scene)
+    oMap = utils.genLayoutOMap(scene, pm.layoutMapSize)
     #utils.showImage(oMap)
-    utils.saveImage(oMap, path + 'label_omap.png')
+    utils.saveImage(oMap, path + '/label_omap.png')
 
-    normalMap = utils.genLayoutNormalMap(scene)
+    normalMap = utils.genLayoutNormalMap(scene, pm.layoutMapSize)
     #utils.showImage(normalMap)
-    utils.saveImage(normalMap, path + 'label_normal.png')
+    utils.saveImage(normalMap, path + '/label_normal.png')
 
-    depthMap = utils.genLayoutDepthMap(scene)
-    utils.saveImage(depthMap, path + 'label_depth.png')
+    depthMap = utils.genLayoutDepthMap(scene, pm.layoutMapSize)
+    utils.saveImage(depthMap, path + '/label_depth.png')
 
 
 def saveSceneAsJson(path, scene):

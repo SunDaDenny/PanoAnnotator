@@ -4,4 +4,6 @@
 
 estimator/depth/models/trained/*
 
-preprocess/matlab/*
+preprocess/matlab/LayoutNet
+preprocess/matlab/MyTool
+

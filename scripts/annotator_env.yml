@@ -1,0 +1,75 @@
+name: Annotator
+channels:
+- defaults
+dependencies:
+- _tflow_1100_select=0.0.1=gpu
+- absl-py=0.4.1=py35_0
+- astor=0.7.1=py35_0
+- blas=1.0=mkl
+- ca-certificates=2018.03.07=0
+- certifi=2018.8.24=py35_1
+- cloudpickle=0.5.5=py35_0
+- cudatoolkit=9.0=1
+- cudnn=7.1.4=cuda9.0_0
+- cycler=0.10.0=py35hcc71164_0
+- dask-core=0.19.0=py35_0
+- decorator=4.3.0=py35_0
+- freetype=2.9.1=ha9979f8_1
+- gast=0.2.0=py35_0
+- grpcio=1.12.1=py35h1a1b453_0
+- icc_rt=2017.0.4=h97af966_0
+- icu=58.2=ha66f8fd_1
+- imageio=2.3.0=py35_0
+- intel-openmp=2018.0.3=0
+- jpeg=9b=hb83a4c4_2
+- kiwisolver=1.0.1=py35h6538335_0
+- libpng=1.6.34=h79bbb47_0
+- libprotobuf=3.6.0=h1a1b453_0
+- libtiff=4.0.9=h36446d0_2
+- markdown=2.6.11=py35_0
+- matplotlib=2.2.3=py35hd159220_0
+- mkl=2018.0.3=1
+- mkl_fft=1.0.4=py35h1e22a9b_1
+- mkl_random=1.0.1=py35h77b88f5_1
+- networkx=2.1=py35_0
+- numpy=1.15.1=py35ha559c80_0
+- numpy-base=1.15.1=py35h8128ebf_0
+- olefile=0.45.1=py35_0
+- openssl=1.0.2p=hfa6e2cd_0
+- pillow=5.2.0=py35h08bbbbd_0
+- pip=10.0.1=py35_0
+- protobuf=3.6.0=py35he025d50_0
+- pyopengl=3.1.1a1=py35_0
+- pyparsing=2.2.0=py35_1
+- pyqt=5.9.2=py35ha878b3d_0
+- python=3.5.6=he025d50_0
+- python-dateutil=2.7.3=py35_0
+- pytz=2018.5=py35_0
+- pywavelets=1.0.0=py35h452e1ab_0
+- qt=5.9.6=vc14h62aca36_0
+- scikit-image=0.14.0=py35h6538335_1
+- scipy=1.1.0=py35h4f6bf74_1
+- setuptools=40.2.0=py35_0
+- sip=4.19.12=py35h6538335_0
+- six=1.11.0=py35_1
+- sqlite=3.24.0=h7602738_0
+- tensorboard=1.10.0=py35he025d50_0
+- tensorflow=1.10.0=gpu_py35ha5d5ef7_0
+- tensorflow-base=1.10.0=gpu_py35h6e53903_0
+- tensorflow-gpu=1.10.0=hf154084_0
+- termcolor=1.1.0=py35_1
+- tk=8.6.8=hfa6e2cd_0
+- toolz=0.9.0=py35_0
+- tornado=5.1=py35hfa6e2cd_0
+- vc=14=h0510ff6_3
+- vs2015_runtime=14.0.25123=3
+- werkzeug=0.14.1=py35_0
+- wheel=0.31.1=py35_0
+- wincertstore=0.2=py35hfebbdb8_0
+- zlib=1.2.11=h8395fce_2
+- pip:
+  - dask==0.19.0
+  - mkl-fft==1.0.4
+  - mkl-random==1.0.1
+prefix: C:\Users\SunDa\AppData\Local\conda\conda\envs\Annotator
+
