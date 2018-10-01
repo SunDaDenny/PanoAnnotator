@@ -4,7 +4,7 @@ import numpy as np
 import data
 import utils
 import configs.Params as pm
-import estimator
+#import estimator
 
 class Scene(object):
 
@@ -70,8 +70,11 @@ class Scene(object):
             depthData = self.__panoDepth.data.astype(float) / 4000 #For Matterport3d GT
             self.__panoDepth.data = depthData
         else:
-            pred = self.depthPred.predict(self.__panoColor.image)
-            self.__panoDepth.data = pred
+            if self.depthPred:
+                pred = self.depthPred.predict(self.__panoColor.image)
+                self.__panoDepth.data = pred
+            else:
+                self.__panoDepth.data = np.ones((256, 512))
 
     def __initLines(self):
 

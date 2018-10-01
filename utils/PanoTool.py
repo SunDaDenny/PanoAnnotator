@@ -46,7 +46,7 @@ def xyz2uv(xyz):
     u = math.asin(xyz[0] / normXZ)
 
     if xyz[2] > 0 and u > 0:
-            u = math.pi - u
+        u = math.pi - u
     elif xyz[2] > 0 and u < 0:
         u = -math.pi - u 
 

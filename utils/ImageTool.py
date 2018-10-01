@@ -116,7 +116,7 @@ def imageDrawWallDepth(data, polygon, wall):
 
         point = utils.vectorPlaneHit(vec, wall.planeEquation)
         depth = 0 if point is None else utils.pointsDistance((0,0,0), point)
-        color = (depth/10, depth/10, depth/10)
+        color = (depth, depth, depth)
         draw.set_color(data, [posy[i],posx[i]], list(color))
 
 def showImage(image):
@@ -128,4 +128,20 @@ def showImage(image):
 def saveImage(image, path):
 
     im = Image.fromarray(np.uint8(image*255))
+    im.save(path)
+
+def saveDepth(depth, path):
+
+    depth = depth[:,:,0]
+    data = np.uint16(depth*4000)
+
+    array_buffer = data.tobytes()
+    img = Image.new("I", data.T.shape)
+    img.frombytes(array_buffer, 'raw', "I;16")
+    img.save(path)
+
+def saveMask(mask, path):
+
+    mask = mask[:,:,0]
+    im = Image.fromarray(np.uint8(mask*255))
     im.save(path)

@@ -13,7 +13,7 @@ class Object2D(object):
         
         self.gPoints = gPoints
         self.attach = wall
-        self.color = (0, 0, 0)
+        self.color = (1, 1, 1)
         
         self.normal = (0, 0, 0)
         self.planeEquation = (0, 0, 0, 0)
@@ -56,7 +56,7 @@ class Object2D(object):
 
         self.normal = utils.pointsNormal(self.corners[0].xyz,self.corners[1].xyz,
                                         self.corners[3].xyz)
-        self.color = utils.normal2color(self.normal)
+        #self.color = utils.normal2color(self.normal)
         self.planeEquation = utils.planeEquation(self.normal, self.corners[0].xyz)
         self.width =  utils.pointsDistance(self.corners[0].xyz, self.corners[1].xyz)
 

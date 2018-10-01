@@ -1,11 +1,12 @@
 import sys
 import os
+import argparse
 
 import data
 import configs.Params as pm
 import views
 import qdarkstyle
-import estimator
+#import estimator
 import utils
 
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QProgressDialog
@@ -23,7 +24,12 @@ class MainWindow(QMainWindow, views.MainWindowUi):
         self.actionSaveFile.triggered.connect(self.saveSceneFile)
 
         self.mainScene = data.Scene(self)
-        self.depthPred = estimator.DepthPred()
+
+        if pm.isDepthPred:
+            import estimator
+            self.depthPred = estimator.DepthPred()  
+        else:
+            self.depthPred = None
 
         self.panoView.setMainWindow(self)
         self.monoView.setMainWindow(self)
@@ -102,6 +108,7 @@ class MainWindow(QMainWindow, views.MainWindowUi):
         #print(key)
 
 if __name__ == "__main__":
+
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
     win = MainWindow()

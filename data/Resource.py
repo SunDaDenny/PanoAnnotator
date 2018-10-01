@@ -1,6 +1,8 @@
 import os
 import numpy as np
 
+import configs.Params as pm
+
 from PIL import Image as Image
 from PyQt5.QtGui import QPixmap
 
@@ -20,8 +22,9 @@ class Resource(object):
         if os.path.exists(filePath):
             self.path = filePath
             self.image = Image.open(filePath).convert('RGB')
-            self.data = np.asarray(self.image).astype(np.float)           
-            self.pixmap = QPixmap(filePath)
+            self.data = np.asarray(self.image).astype(np.float)    
+            if pm.isGUI:       
+                self.pixmap = QPixmap(filePath)
             return True
         else :
             print("No default {0} image found".format(self.name))

@@ -77,7 +77,6 @@ def genWallPolygon2d(size, wall):
         polygon2 = [(0,uh)] + polygon[iul:idl] + [(0,dh)]
         return True, (polygon1,polygon2)
     
-
 def genLayoutNormalMap(scene, size):
     
     normalMap = np.zeros(size)
@@ -131,7 +130,7 @@ def genLayoutDepthMap(scene, size):
                 plane = scene.label.getLayoutFloor().planeEquation
             point = utils.vectorPlaneHit(vec, plane)
             depth = 0 if point is None else utils.pointsDistance((0,0,0), point)
-            depthMap[y,x] = depth / 10
+            depthMap[y,x] = depth
 
     for wall in scene.label.getLayoutWalls():
         if wall.planeEquation[3] > 0:
@@ -174,6 +173,20 @@ def genLayoutEdgeMap(scene, size):
     edgeMap = utils.imageGaussianBlur(edgeMap, 2)
     return edgeMap
 
+
+def genLayoutObj2dMap(scene, size):
+
+    obj2dMap = np.zeros(size)
+
+    for obj2d in scene.label.getLayoutObject2d():
+        isCross, polygon = genWallPolygon2d(size, obj2d)
+        if not isCross:
+            utils.imageDrawPolygon(obj2dMap, polygon, obj2d.color)
+        else:
+            utils.imageDrawPolygon(obj2dMap, polygon[0], obj2d.color)
+            utils.imageDrawPolygon(obj2dMap, polygon[1], obj2d.color)
+
+    return obj2dMap
 
 def normal2ManhColor(normal):
     vec = [abs(e) for e in list(normal)]

@@ -2,6 +2,7 @@ import json
 import io
 
 import configs.Params as pm
+import configs.User as user
 import utils
 import data
 
@@ -13,20 +14,35 @@ except NameError:
 def saveSceneAsMaps(path, scene):
 
     edgeMap = utils.genLayoutEdgeMap(scene, pm.layoutMapSize)
-    #utils.showImage(edgeMap)
-    utils.saveImage(edgeMap, path + '/label_edge.png')
+    utils.saveImage(edgeMap, path + '/label_edge_vp.png')
     
     oMap = utils.genLayoutOMap(scene, pm.layoutMapSize)
-    #utils.showImage(oMap)
     utils.saveImage(oMap, path + '/label_omap.png')
 
     normalMap = utils.genLayoutNormalMap(scene, pm.layoutMapSize)
-    #utils.showImage(normalMap)
     utils.saveImage(normalMap, path + '/label_normal.png')
 
     depthMap = utils.genLayoutDepthMap(scene, pm.layoutMapSize)
-    utils.saveImage(depthMap, path + '/label_depth.png')
+    utils.saveDepth(depthMap, path + '/label_depth.png')
 
+    obj2dMap = utils.genLayoutObj2dMap(scene, pm.layoutMapSize)
+    utils.saveImage(obj2dMap, path + '/label_object2d.png')
+
+
+def showLayoutMaps(scene, color=None):
+
+    edgeMap = utils.genLayoutEdgeMap(scene, pm.layoutMapSize)
+    if color is not None:
+        color = utils.imageResize(color, [512, 1024])
+        edgeMap = edgeMap * 0.5 + color * 0.5
+    utils.showImage(edgeMap)
+
+    obj2dMap = utils.genLayoutObj2dMap(scene, pm.layoutMapSize)
+    obj2dMap = obj2dMap * 0.7 + color * 0.3
+    utils.showImage(obj2dMap)
+    
+    #normalMap = utils.genLayoutNormalMap(scene, pm.layoutMapSize)
+    #utils.showImage(normalMap)
 
 def saveSceneAsJson(path, scene):
 
@@ -73,14 +89,16 @@ def saveSceneAsJson(path, scene):
     obj2dsDict = {'num':len(obj2ds),
                  'obj2ds':obj2dsList}
 
-    data = {'name': scene.getPanoColorPath(),
+    data = {
+            'userName': user.name,
+            'panoId': scene.getPanoColorPath(),
             'layoutHeight': scene.label.getLayoutHeight(),
             'cameraHeight': scene.label.getCameraHeight(),
             'cameraCeilingHeight': scene.label.getCam2CeilHeight(),
             'layoutPoints':pointsDict,
             'layoutWalls':wallsDict,
             'layoutObj2ds':obj2dsDict}
-
+    
     with io.open(path, 'w', encoding='utf8') as outfile:
         str_ = json.dumps(data,
                         indent=4, sort_keys=True,

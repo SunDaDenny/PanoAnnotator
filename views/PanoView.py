@@ -283,7 +283,7 @@ class PanoView(QLabel):
                 self.__scene.label.moveWallByPred(wall, dy)
             else:
                 d = wall.planeEquation[3]
-                move = dy / 5000 * -d
+                move = dy / 5000 * -d + dy/3000
                 self.__scene.label.moveWallByNormal(wall, move)
 
         for floorplane in self.__scene.getSelectObjs('FloorPlane'):

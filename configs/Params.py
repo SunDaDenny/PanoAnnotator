@@ -1,24 +1,27 @@
 
 class Params(object):
 
-    #MainWindows
     fileDefaultOpenPath = "D:"
-
     labelFileDefaultName = "label.json"
 
-    colorFileDefaultName = "color.png"#"pano_color.png"
-    depthFileDefaultName = "depth_gt.png"#"pano_depth_none.png"
-    linesFileDefaultName = "lines.png"#"pano_edge.png"
-    omapFileDefaultName = "omap.png"#pano_omap.png"
+    colorFileDefaultName = "color.png"
+    depthFileDefaultName = "depth.png"
+    linesFileDefaultName = "None" #"lines.png"
+    omapFileDefaultName = "None" #"omap.png"
 
-    #Input
-    keyDict = {'none':0, 'ctrl':1, 'shift':2, 'alt':3, 'object':4}
+    #GPU
+    isDepthPred = True
+    isGUI = True
 
     #Annotation
     layoutMapSize = [512, 1024, 3]
 
     defaultCameraHeight = 1.8
     defaultLayoutHeight = 3.2
+
+
+    #Input
+    keyDict = {'none':0, 'ctrl':1, 'shift':2, 'alt':3, 'object':4}
 
     layoutHeightSampleRange = 0.3
     layoutHeightSampleStep = 0.01 
